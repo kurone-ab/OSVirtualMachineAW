@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/OSVirtualMachineAW-v.1.iml" filepath="$PROJECT_DIR$/OSVirtualMachineAW-v.1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/OSVirtualMachineAW.iml" filepath="$PROJECT_DIR$/OSVirtualMachineAW.iml" />
     </modules>
   </component>
 </project>
