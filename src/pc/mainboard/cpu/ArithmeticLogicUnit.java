@@ -34,6 +34,6 @@ class ArithmeticLogicUnit {
 	}
 
 	static void EQL() {
-		Register.status.Z = (byte) (Register.ac.data == Register.mbr.data ? 0 : 1);
+		Register.status.N = (byte) (Register.ac.data == Register.mbr.data ? 0 : 1);
 	}
 }

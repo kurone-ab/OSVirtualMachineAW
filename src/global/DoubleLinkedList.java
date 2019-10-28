@@ -13,10 +13,7 @@ public class DoubleLinkedList<T> implements Serializable {
         if (this.head == null) {
             this.current = this.head = new NodeAW(data);
         } else {
-            NodeAW temp = this.head;
-            for (int i = 0; i < this.size - 1; i++) {
-                temp = temp.next;
-            }
+            NodeAW temp = this.head.pre;
             NodeAW newData = new NodeAW(data);
             temp.next = newData;
             newData.next = this.head;
