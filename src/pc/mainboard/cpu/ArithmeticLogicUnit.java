@@ -7,6 +7,7 @@ class ArithmeticLogicUnit {
 
 	static void SUB() {
 		Register.ac.data = Register.ac.data - Register.mbr.data;
+		Register.status.N = Register.ac.data < 0;
 	}
 
 	static void MUL() {
@@ -34,6 +35,6 @@ class ArithmeticLogicUnit {
 	}
 
 	static void EQL() {
-		Register.status.N = (byte) (Register.ac.data == Register.mbr.data ? 0 : 1);
+		Register.status.Z = Register.ac.data == Register.mbr.data;
 	}
 }

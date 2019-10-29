@@ -1,7 +1,7 @@
 package pc.mainboard.cpu;
 
-enum Register {
+public enum Register {
 	pc, sp, mar, mbr, ir, ac, status;
-	int data;
-	byte N, I;
+	public int data;
+	public boolean Z, N, I;
 }
