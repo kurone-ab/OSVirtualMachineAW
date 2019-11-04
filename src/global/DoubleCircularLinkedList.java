@@ -2,11 +2,11 @@ package global;
 
 import java.io.Serializable;
 
-public class DoubleLinkedList<T> implements Serializable {
+public class DoubleCircularLinkedList<T> implements Serializable {
     private NodeAW head, current;
     private int size;
 
-    public DoubleLinkedList() {
+    public DoubleCircularLinkedList() {
     }
 
     public void add(T data) {

@@ -7,7 +7,9 @@ class ArithmeticLogicUnit {
 
 	static void SUB() {
 		Register.ac.data = Register.ac.data - Register.mbr.data;
-		Register.status.N = Register.ac.data < 0;
+		if (Register.ac.data == 0) Register.status.Z = true;
+		else if (Register.ac.data < 0) Register.status.N = true;
+		else Register.status.N = Register.status.Z = false;
 	}
 
 	static void MUL() {
@@ -32,9 +34,5 @@ class ArithmeticLogicUnit {
 
 	static void XOR() {
 		Register.ac.data = Register.ac.data ^ Register.mbr.data;
-	}
-
-	static void EQL() {
-		Register.status.Z = Register.ac.data == Register.mbr.data;
 	}
 }
