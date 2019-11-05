@@ -5,14 +5,12 @@ import pc.io.KeyBoard;
 import pc.io.Mouse;
 import pc.mainboard.cpu.CentralProcessingUnit;
 
-import java.util.Random;
-
 public class MainBoard {
-	private RandomAccessMemory ram;
-	private PersistenceStorage disk;
-	private Mouse mouse;
-	private KeyBoard keyBoard;
-	private CentralProcessingUnit cpu;
+	public static RandomAccessMemory ram;
+	public static PersistenceStorage disk;
+	public static Mouse mouse;
+	public static KeyBoard keyBoard;
+	public static CentralProcessingUnit cpu;
 
 	public void on() {
 		ram = new RandomAccessMemory();

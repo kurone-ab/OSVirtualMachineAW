@@ -4,7 +4,7 @@ import java.util.Stack;
 import java.util.Vector;
 
 public class ProcessAW {
+	public int stackSize;
 	public int[] code, data;
-	public Stack<Integer> stack;
-	public Vector<Integer> heap;
+	public Vector<Integer> stack, heap;
 }
