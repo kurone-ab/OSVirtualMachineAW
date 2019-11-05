@@ -2,6 +2,7 @@ package pc.mainboard.cpu;
 
 
 import global.StackOverFlowExceptionAW;
+import pc.mainboard.MainBoard;
 import pc.mainboard.RandomAccessMemory;
 
 import java.lang.reflect.InvocationTargetException;
@@ -14,7 +15,7 @@ public class ControlUnit {
 
 	public void fetch() {
 		Register.mar.data = Register.pc.data;
-		RandomAccessMemory.fetchInstruction();
+		MainBoard.ram.fetchInstruction();
 		Register.ir.data = Register.mbr.data;
 	}
 
@@ -45,7 +46,7 @@ public class ControlUnit {
 
 	private void LDA() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
+		MainBoard.ram.fetchData();
 		Register.ac.data = Register.mbr.data;
 	}
 
@@ -56,55 +57,55 @@ public class ControlUnit {
 	private void STA() {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
 		Register.mbr.data = Register.ac.data;
-		RandomAccessMemory.storeData();
+		MainBoard.ram.storeData();
 	}
 
 	private void ADD() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
-		ArithmeticLogicUnit.ADD();
+		MainBoard.ram.fetchData();
+		CentralProcessingUnit.alu.ADD();
 	}
 
 	private void SUB() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
-		ArithmeticLogicUnit.SUB();
+		MainBoard.ram.fetchData();
+		CentralProcessingUnit.alu.SUB();
 	}
 
 	private void MUL() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
-		ArithmeticLogicUnit.MUL();
+		MainBoard.ram.fetchData();
+		CentralProcessingUnit.alu.MUL();
 	}
 
 	private void DIV() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
-		ArithmeticLogicUnit.DIV();
+		MainBoard.ram.fetchData();
+		CentralProcessingUnit.alu.DIV();
 	}
 
 	private void AND() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
-		ArithmeticLogicUnit.AND();
+		MainBoard.ram.fetchData();
+		CentralProcessingUnit.alu.AND();
 	}
 
 	private void OR() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
-		ArithmeticLogicUnit.OR();
+		MainBoard.ram.fetchData();
+		CentralProcessingUnit.alu.OR();
 	}
 
 	private void NOT() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
-		ArithmeticLogicUnit.NOT();
+		MainBoard.ram.fetchData();
+		CentralProcessingUnit.alu.NOT();
 	}
 
 	private void XOR() throws StackOverFlowExceptionAW {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
-		RandomAccessMemory.fetchData();
-		ArithmeticLogicUnit.XOR();
+		MainBoard.ram.fetchData();
+		CentralProcessingUnit.alu.XOR();
 	}
 
 	private void JMP() {

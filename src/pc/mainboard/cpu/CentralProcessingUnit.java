@@ -5,12 +5,11 @@ import org.jetbrains.annotations.Contract;
 
 public class CentralProcessingUnit {
 	private static final CentralProcessingUnit cpu = new CentralProcessingUnit();
-	private static final ControlUnit cu = new ControlUnit();
-	private static final ArithmeticLogicUnit alu = new ArithmeticLogicUnit();
+	static final ControlUnit cu = new ControlUnit();
+	static final ArithmeticLogicUnit alu = new ArithmeticLogicUnit();
 
 	@Contract(pure = true)
 	private CentralProcessingUnit() {
-
 	}
 
 	@Contract(pure = true)
