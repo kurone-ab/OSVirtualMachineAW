@@ -11,15 +11,16 @@ import java.util.Vector;
 public class Loader {
 
 	public static void load(int index){
-		ParserAW.prepareParsing(PersistenceStorage.getFile(index));
+		ParserAW.prepareParsing(MainBoard.disk.getFile(index));
 
 		ProcessAW processAW = new ProcessAW();
+		processAW.pcb = new ProcessControlBlock();
 		processAW.stackSize = ParserAW.stackSize();
 		processAW.data = ParserAW.parseData();
 		processAW.code = ParserAW.parseCode();
 		processAW.stack = new Vector<>();
 		processAW.heap = new Vector<>();
 
-		SchedulingQueue.ready.add(MainBoard.ram.load(processAW));
+		OperatingSystem.memoryManagerAW.load(processAW);
 	}
 }

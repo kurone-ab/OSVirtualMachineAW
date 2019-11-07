@@ -6,9 +6,16 @@ import pc.mainboard.MainBoard;
 import java.util.Vector;
 
 public class OperatingSystem {
-	Vector<ProcessControlBlock> pcb;
+	static final int
+	static ProcessManagerAW processManagerAW;
+	static MemoryManagerAW memoryManagerAW;
+	static FileManagerAW fileManagerAW;
+	static DeviceManagerAW deviceManagerAW;
 	public void on(){
-		this.pcb = new Vector<>();
+		processManagerAW = new ProcessManagerAW();
+		memoryManagerAW = new MemoryManagerAW();
+		fileManagerAW = new FileManagerAW();
+		deviceManagerAW = new DeviceManagerAW();
 	}
 
 	public void processing(){

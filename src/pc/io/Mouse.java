@@ -1,4 +1,4 @@
 package pc.io;
 
-public class Mouse {
+public class Mouse implements IODevice {
 }

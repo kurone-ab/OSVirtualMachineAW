@@ -13,17 +13,17 @@ public class ControlUnit {
 	ControlUnit() {
 	}
 
-	public void fetch() {
+	void fetch() {
 		Register.mar.data = Register.pc.data;
 		MainBoard.ram.fetchInstruction();
 		Register.ir.data = Register.mbr.data;
 	}
 
-	public void decode() {
+	void decode() {
 		instruction = Instruction.values()[Register.ir.data >>> 16];
 	}
 
-	public void execute() throws StackOverFlowExceptionAW {
+	void execute() throws StackOverFlowExceptionAW {
 		switch (instruction){
 			case LDA: LDA(); break;
 			case LDI: LDI(); break;
@@ -113,15 +113,15 @@ public class ControlUnit {
 	}
 
 	private void JSZ() {
-		if (Register.status.Z) Register.pc.data = Register.ir.data & 0x0000ffff;
+		if ((Register.status.data&0x00000010)!=0) Register.pc.data = Register.ir.data & 0x0000ffff;
 	}
 
 	private void JSN() {
-		if (Register.status.N) Register.pc.data = Register.ir.data & 0x0000ffff;
+		if ((Register.status.data&0x00000100)!=0) Register.pc.data = Register.ir.data & 0x0000ffff;
 	}
 
 	private void ITR(){
-		Register.status.I = true;
+		Register.status.data |= 0x00000001;
 		Register.itr.data = Register.ir.data & 0x0000ffff;
 	}
 
@@ -130,10 +130,11 @@ public class ControlUnit {
 	}
 
 	public enum Instruction {
-		LDA, LDI, STA, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT
+		LDA, LDI, STA, ASN, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT
 		/* load address
 		 * load integer value
 		 * store address
+		 * assignment
 		 * add
 		 * subtract
 		 * multiple

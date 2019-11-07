@@ -4,12 +4,13 @@
  import java.util.Vector;
 
  public class PersistenceStorage {
-	private static Vector<String> storage;
+	private Vector<String> storage;
 
 	public PersistenceStorage() {
+		this.storage = new Vector<>();
 	}
 
-	public static String getFile(int index){
+	public String getFile(int index){
 		return storage.get(index);
 	}
 }

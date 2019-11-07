@@ -5,6 +5,8 @@ public enum Register {
 	public int data;
 	/*itr is store interrupt id*/
 	/*status register data
-	* 1.
+	* 1. interrupt
+	* 2. zero flag
+	* 3. negative flag
 	* */
 }

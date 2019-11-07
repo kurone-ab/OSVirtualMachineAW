@@ -7,16 +7,7 @@ import pc.mainboard.cpu.Register;
 import java.util.Vector;
 
 public class RandomAccessMemory {
-	private static final Vector<ProcessAW> memory = new Vector<>();
-
-	public int load(ProcessAW processAW){
-		memory.add(processAW);
-		return memory.size()-1;
-	}
-
-	public void unload(int process){
-		memory.remove(process);
-	}
+	public final Vector<ProcessAW> memory = new Vector<>();
 
 	public void fetchInstruction() {
 		Register.mbr.data = memory.get(Register.sp.data).code[Register.mar.data];

@@ -1,4 +1,4 @@
 package pc.io;
 
-public class KeyBoard {
+public class KeyBoard implements IODevice{
 }
