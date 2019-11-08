@@ -12,12 +12,8 @@ public class DoubleCircularLinkedList<T> implements Serializable {
 	public void add(T data) {
 		if (this.head == null) {
 			this.current = this.head = new NodeAW(data);
-		} else if (this.head.pre == null) {
-			NodeAW newData = new NodeAW(data);
-			this.head.next = newData;
-			newData.next = this.head;
-			this.head.pre = newData;
-			newData.pre = this.head;
+			this.head.next = this.head;
+			this.head.pre = this.head;
 		} else {
 			NodeAW temp = this.head.pre;
 			NodeAW newData = new NodeAW(data);
@@ -38,6 +34,18 @@ public class DoubleCircularLinkedList<T> implements Serializable {
 		return temp;
 	}
 
+	public void remove(T t) {
+		NodeAW temp = this.head;
+		for (int i = 0; i < this.size; i++) {
+			if (temp.data.equals(t)){
+				temp.pre.next = temp.next;
+				temp.next.pre = temp.pre;
+				break;
+			}
+			temp = temp.next;
+		}
+	}
+
 	public T get(int i) {
 		if (i >= this.size)
 			throw new ArrayIndexOutOfBoundsException();
@@ -56,6 +64,10 @@ public class DoubleCircularLinkedList<T> implements Serializable {
 
 	public int size() {
 		return this.size;
+	}
+
+	public boolean isEmpty() {
+		return this.size == 0;
 	}
 
 	private class NodeAW {

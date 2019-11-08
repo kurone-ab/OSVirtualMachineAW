@@ -126,15 +126,13 @@ public class ControlUnit {
 	}
 
 	private void HLT(){
-
+		Register.status.data |= 0x00001000;
 	}
 
 	public enum Instruction {
-		LDA, LDI, LFU, LFL, STA, ASN, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT
+		LDA, LDI, STA, ASN, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT
 		/* load address
 		 * load integer value
-		 * load float upper
-		 * load float lower
 		 * store address
 		 * assignment
 		 * add

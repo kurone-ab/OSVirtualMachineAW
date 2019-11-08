@@ -1,5 +1,6 @@
 package os;
 
 public interface InterruptServiceRoutine {
-	void handle();
+	ProcessAW processAW = null;
+	void handle(ProcessAW processAW);
 }

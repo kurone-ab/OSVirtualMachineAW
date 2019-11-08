@@ -6,11 +6,12 @@ import pc.mainboard.MainBoard;
 import java.util.Vector;
 
 public class OperatingSystem {
-//	static final int
+	static final int TIME_SLICE = 30000000;
 	static ProcessManagerAW processManagerAW;
 	static MemoryManagerAW memoryManagerAW;
 	static FileManagerAW fileManagerAW;
 	static DeviceManagerAW deviceManagerAW;
+	static InterruptServiceRoutine isr;
 	public void on(){
 		processManagerAW = new ProcessManagerAW();
 		memoryManagerAW = new MemoryManagerAW();
