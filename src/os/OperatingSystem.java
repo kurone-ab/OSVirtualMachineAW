@@ -6,7 +6,7 @@ import pc.mainboard.MainBoard;
 import java.util.Vector;
 
 public class OperatingSystem {
-	static final int
+//	static final int
 	static ProcessManagerAW processManagerAW;
 	static MemoryManagerAW memoryManagerAW;
 	static FileManagerAW fileManagerAW;

@@ -46,8 +46,8 @@ class ArithmeticLogicUnit {
 	}
 
 	private void setFlag(){
-		if (Register.ac.data == 0) Register.status.Z = true;
-		else if (Register.ac.data < 0) Register.status.N = true;
-		else Register.status.N = Register.status.Z = false;
+		if (Register.ac.data == 0) Register.status.data |= 0x00000010;
+		else if (Register.ac.data < 0) Register.status.data |= 0x00000100;
+		else Register.status.data &= 0x11111001;
 	}
 }
