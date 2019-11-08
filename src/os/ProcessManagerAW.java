@@ -21,6 +21,7 @@ public class ProcessManagerAW {
 		processAW.pcb.pid = random.nextInt();
 		processAW.pcb.ps = Status.neww;
 		readyProcess(index);
+		run();
 	}
 
 	private void readyProcess(int index) {
@@ -30,7 +31,7 @@ public class ProcessManagerAW {
 		ready.current.pcb.sp = index;
 	}
 
-	public void run() {
+	private void run() {
 		ready.current.pcb.ps = Status.run;
 		long start = System.nanoTime();
 		Thread isr = null;
