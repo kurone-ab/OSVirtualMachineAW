@@ -7,8 +7,8 @@ import pc.mainboard.RandomAccessMemory;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class ControlUnit {
-	private static Instruction instruction;
+class ControlUnit {
+	private static CentralProcessingUnit.Instruction instruction;
 
 	ControlUnit() {
 	}
@@ -20,7 +20,7 @@ public class ControlUnit {
 	}
 
 	void decode() {
-		instruction = Instruction.values()[Register.ir.data >>> 16];
+		instruction = CentralProcessingUnit.Instruction.values()[Register.ir.data >>> 16];
 	}
 
 	void execute() throws StackOverFlowExceptionAW {
@@ -127,28 +127,6 @@ public class ControlUnit {
 
 	private void HLT(){
 		Register.status.data |= 0x00001000;
-	}
-
-	public enum Instruction {
-		LDA, LDI, STA, ASN, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT
-		/* load address
-		 * load integer value
-		 * store address
-		 * assignment
-		 * add
-		 * subtract
-		 * multiple
-		 * division
-		 * and
-		 * or
-		 * not
-		 * exclusive or
-		 * jump
-		 * jump if zero is true
-		 * jump if negative is true
-		 * interrupt
-		 * halt
-		 */
 	}
 
 }

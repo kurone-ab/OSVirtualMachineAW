@@ -5,7 +5,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class ProcessControlBlock {
 	int pid;
-	int pc, sp, mar, mbr, ir, ac, status, itr;
+	int[] registers;
 	Status ps;
 
 	@Override

@@ -3,8 +3,6 @@ package os;
 import global.StackOverFlowExceptionAW;
 import pc.mainboard.MainBoard;
 
-import java.util.Vector;
-
 public class OperatingSystem {
 	static final int TIME_SLICE = 30000000;
 	static ProcessManagerAW processManagerAW;
@@ -21,7 +19,7 @@ public class OperatingSystem {
 
 	public void processing(){
 		try {
-			MainBoard.cpu.cycle();
+			MainBoard.cpu.clock();
 		} catch (StackOverFlowExceptionAW stackOverFlowExceptionAW) {
 			stackOverFlowExceptionAW.printStackTrace();
 		}

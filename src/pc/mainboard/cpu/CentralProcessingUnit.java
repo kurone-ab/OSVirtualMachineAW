@@ -17,9 +17,31 @@ public class CentralProcessingUnit {
 		return cpu;
 	}
 
-	public void cycle() throws StackOverFlowExceptionAW {
+	public void clock() throws StackOverFlowExceptionAW {
 		cu.fetch();
 		cu.decode();
 		cu.execute();
+	}
+
+	public enum Instruction {
+		LDA, LDI, STA, ASN, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT
+		/* load address
+		 * load integer value
+		 * store address
+		 * assignment
+		 * add
+		 * subtract
+		 * multiple
+		 * division
+		 * and
+		 * or
+		 * not
+		 * exclusive or
+		 * jump
+		 * jump if zero is true
+		 * jump if negative is true
+		 * interrupt
+		 * halt
+		 */
 	}
 }

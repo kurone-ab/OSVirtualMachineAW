@@ -10,12 +10,12 @@ import java.util.Vector;
 
 public class Loader {
 
-	public static void load(int index){
+	public synchronized static void load(int index){
 		ParserAW.prepareParsing(MainBoard.disk.getFile(index));
 
 		ProcessAW processAW = new ProcessAW();
-		processAW.pcb = new ProcessControlBlock();
 		processAW.stackSize = ParserAW.stackSize();
+		ParserAW.parse();
 		processAW.data = ParserAW.parseData();
 		processAW.code = ParserAW.parseCode();
 		processAW.stack = new Vector<>();

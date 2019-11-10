@@ -1,0 +1,10 @@
+.STACK
+2
+.DATA
+a 1
+b 3
+.CODE
+LDI 1
+ADD a
+ASN x
+LDA x
