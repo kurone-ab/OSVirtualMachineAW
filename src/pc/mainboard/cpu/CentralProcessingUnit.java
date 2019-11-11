@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Contract;
 
 public class CentralProcessingUnit {
 	private static final CentralProcessingUnit cpu = new CentralProcessingUnit();
-	static final ControlUnit cu = new ControlUnit();
+	private static final ControlUnit cu = new ControlUnit();
 	static final ArithmeticLogicUnit alu = new ArithmeticLogicUnit();
 
 	@Contract(pure = true)
@@ -24,7 +24,7 @@ public class CentralProcessingUnit {
 	}
 
 	public enum Instruction {
-		LDA, LDI, STA, ASN, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT
+		LDA, LDI, STA, ASN, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT, PRT
 		/* load address
 		 * load integer value
 		 * store address
@@ -42,6 +42,7 @@ public class CentralProcessingUnit {
 		 * jump if negative is true
 		 * interrupt
 		 * halt
+		 * print
 		 */
 	}
 }

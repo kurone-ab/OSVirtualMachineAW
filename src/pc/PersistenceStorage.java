@@ -13,4 +13,6 @@
 	public String getFile(int index){
 		return storage.get(index);
 	}
+
+	public void saveFile(String string){storage.add(string);}
 }

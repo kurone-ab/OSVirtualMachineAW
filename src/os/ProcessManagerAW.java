@@ -6,6 +6,7 @@ import pc.mainboard.MainBoard;
 import pc.mainboard.cpu.Register;
 
 import java.security.SecureRandom;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class ProcessManagerAW {
@@ -19,17 +20,23 @@ public class ProcessManagerAW {
         random.setSeed(System.currentTimeMillis());
     }
 
-    void newProcess(int index, ProcessAW processAW) {
-        ready.current = processAW;
+    void setProcessID(ProcessAW processAW) {
         processAW.pid = random.nextInt();
+    }
+
+    synchronized void newProcess(int index, ProcessAW processAW) {
         ProcessControlBlock pcb = new ProcessControlBlock();
         pcb.pid = processAW.pid;
         pcb.ps = Status.neww;
         pcb.registers = new int[Register.values().length];
         pcb.registers[Register.pc.ordinal()] = 0;
         pcb.registers[Register.sp.ordinal()] = index;
+        pcbs.put(processAW.pid, pcb);
         readyProcess(pcb, index);
-        if (ready.size() == 1) run(pcb);
+        if (ready.size() == 1) {
+            Thread run = new Thread(() -> this.run(pcb));
+            run.start();
+        }
     }
 
     private void readyProcess(ProcessControlBlock pcb, int index) {
@@ -39,9 +46,19 @@ public class ProcessManagerAW {
 
     private void run(ProcessControlBlock pcb) {
         pcb.ps = Status.run;
-        long start = System.nanoTime();
         Thread isr;
+        Register[] registers = Register.values();//Initialize the register to the value of pcb before run.
+        for (int i = 0; i < registers.length; i++)
+            registers[i].data = pcb.registers[i];
+        ready.current = pcb.pid;
+        long start = System.nanoTime();
         while (!ready.isEmpty()) {
+//            try {
+//                Thread.sleep(500);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            System.out.println("current process id: " + ready.current);
             try {
                 MainBoard.cpu.clock();
             } catch (StackOverFlowExceptionAW stackOverFlowExceptionAW) {
@@ -57,43 +74,68 @@ public class ProcessManagerAW {
                     OperatingSystem.isr.handle(ready.current);
                 });
                 isr.start();
+                start = System.nanoTime();
                 continue;
             }
             if (halt()) {
-                this.contextSwitch(Status.terminate);
+                System.out.println("halt");
                 int index = OperatingSystem.memoryManagerAW.unload(ready.current);
+                int pid = ready.current;
                 ready.remove(index);
+                this.pcbs.remove(pid);
+                this.stackPointerReset();
+                this.contextSwitch(Status.terminate);
+                start = System.nanoTime();
                 continue;
             }
             if ((System.nanoTime() - start) > OperatingSystem.TIME_SLICE) {
+                System.out.println("time expired");
                 this.contextSwitch(Status.ready);
                 start = System.nanoTime();
             }
+            System.out.println("time left: "+(System.nanoTime() - start));
         }
     }
 
-    public synchronized void isrFinished(ProcessAW processAW) {
-        wait.current = processAW;
+    public synchronized void isrFinished(int pid) {
+        wait.current = pid;
         int index = OperatingSystem.memoryManagerAW.processAddress(wait.current);
         wait.remove(index);
         ready.add(index);
     }
 
     private void contextSwitch(Status status) {
-        //context save
-        ProcessControlBlock pcb = pcbs.get(ready.current.pid);
-        pcb.ps = status;
+        if (ready.isEmpty()) return;
+        ProcessControlBlock pcb;
         Register[] registers = Register.values();
-        for (int i = 0; i < registers.length; i++)
-            pcb.registers[i] = registers[i].data;
+        if (status != Status.terminate) {
+            //context save
+            pcb = pcbs.get(ready.current);
+            pcb.ps = status;
+            for (int i = 0; i < registers.length; i++)
+                pcb.registers[i] = registers[i].data;
+        }
 
         ready.current = OperatingSystem.memoryManagerAW.getProcess(ready.next());
 
         //context load
-        pcb = pcbs.get(ready.current.pid);
+        pcb = pcbs.get(ready.current);
         pcb.ps = Status.run;
-		for (int i = 0; i < registers.length; i++)
-			 registers[i].data = pcb.registers[i];
+        for (int i = 0; i < registers.length; i++)
+            registers[i].data = pcb.registers[i];
+    }
+
+    private void stackPointerReset() {
+        Enumeration<Integer> keys = this.pcbs.keys();
+        this.ready.reset();
+        while (keys.hasMoreElements()) {
+            Integer key = keys.nextElement();
+            ProcessControlBlock pcb = this.pcbs.get(key);
+            int sp = OperatingSystem.memoryManagerAW.processAddress(pcb.pid);
+            pcb.registers[Register.sp.ordinal()] = sp;
+            this.ready.add(sp);
+            this.pcbs.replace(key, pcb);
+        }
     }
 
     private boolean interrupted() {
@@ -105,6 +147,6 @@ public class ProcessManagerAW {
     }
 
     private static class SchedulingQueue extends DoubleCircularLinkedList<Integer> {
-        ProcessAW current;
+        int current;
     }
 }

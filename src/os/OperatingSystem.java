@@ -4,26 +4,18 @@ import global.StackOverFlowExceptionAW;
 import pc.mainboard.MainBoard;
 
 public class OperatingSystem {
-	static final int TIME_SLICE = 30000000;
+	static final long TIME_SLICE = 200000/*15000000-15ms*/;
 	static ProcessManagerAW processManagerAW;
 	static MemoryManagerAW memoryManagerAW;
 	static FileManagerAW fileManagerAW;
 	static DeviceManagerAW deviceManagerAW;
 	static InterruptServiceRoutine isr;
+
 	public void on(){
 		processManagerAW = new ProcessManagerAW();
 		memoryManagerAW = new MemoryManagerAW();
 		fileManagerAW = new FileManagerAW();
 		deviceManagerAW = new DeviceManagerAW();
 	}
-
-	public void processing(){
-		try {
-			MainBoard.cpu.clock();
-		} catch (StackOverFlowExceptionAW stackOverFlowExceptionAW) {
-			stackOverFlowExceptionAW.printStackTrace();
-		}
-	}
-
 
 }

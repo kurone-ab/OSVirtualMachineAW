@@ -21,6 +21,7 @@ public class ParserAW {
         variables = new HashMap<>();
         codeV = new Vector<>();
         dataV = new Vector<>();
+        size = address = 0;
     }
 
     public static void parse() {
@@ -38,14 +39,13 @@ public class ParserAW {
                 var = scanner.next();//variable names cannot begin with numbers.
                 continue;
             }
-            dataV.add(temp.matches(".?") ? 0 : Integer.parseInt(temp));
+            dataV.add(temp.equals("?") ? 0 : Integer.parseInt(temp));
             variables.put(var, address++);
             var = scanner.next();
         }
         scanner.nextLine();
         while (scanner.hasNext()) {//parsing code area
             String[] codes = scanner.nextLine().split(" ");
-            System.out.println(Arrays.toString(codes));
             int byteCode = decode(codes[0]);
             byteCode = byteCode << 16;
             if (codes.length==1) temp = "0";
