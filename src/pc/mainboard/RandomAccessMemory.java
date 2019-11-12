@@ -1,9 +1,11 @@
 package pc.mainboard;
 
 import global.StackOverFlowExceptionAW;
+import org.jetbrains.annotations.NotNull;
 import os.ProcessAW;
 import pc.mainboard.cpu.Register;
 
+import java.lang.reflect.Array;
 import java.util.Vector;
 
 public class RandomAccessMemory {
@@ -13,7 +15,7 @@ public class RandomAccessMemory {
 		Register.mbr.data = memory.get(Register.sp.data).code[Register.mar.data];
 	}
 
-	public void fetchData() throws StackOverFlowExceptionAW {
+	public synchronized void fetchData() throws StackOverFlowExceptionAW {
 		ProcessAW temp = memory.get(Register.sp.data);
 		if (Register.mar.data < temp.data.length) {
 			fetchData(temp);
@@ -24,7 +26,7 @@ public class RandomAccessMemory {
 		}
 	}
 
-	public void storeData() {
+	public synchronized void storeData() {
 		ProcessAW temp = memory.get(Register.sp.data);
 		if (Register.mar.data < temp.data.length) {
 			storeData(temp);
@@ -35,28 +37,36 @@ public class RandomAccessMemory {
 		}
 	}
 
-	private void fetchData(ProcessAW temp) {
+	private void fetchData(@NotNull ProcessAW temp) {
 		Register.mbr.data = temp.data[Register.mar.data];
 	}
 
-	private void fetchStack(ProcessAW temp) throws StackOverFlowExceptionAW {
+	private void fetchStack(@NotNull ProcessAW temp) throws StackOverFlowExceptionAW {
 		if (Register.mar.data>temp.stackSize+temp.data.length) throw new StackOverFlowExceptionAW();
-		Register.mbr.data = temp.stack.get(Register.mar.data);
+		Register.mbr.data = temp.stack.get(Register.mar.data-temp.data.length);
 	}
 
-	private void fetchHeap(ProcessAW temp) {
-		Register.mbr.data = temp.heap.get(temp.stackSize-Register.mar.data);
+	private void fetchHeap(@NotNull ProcessAW temp) {
+		Register.mbr.data = temp.heap.get(Register.mar.data-temp.stackSize-temp.data.length);
 	}
 
-	private void storeData(ProcessAW temp) {
+	private void storeData(@NotNull ProcessAW temp) {
 		temp.data[Register.mar.data] = Register.mbr.data;
 	}
 
-	private void storeStack(ProcessAW temp) {
-		temp.stack.set(Register.mar.data, Register.mbr.data);
+	private void storeStack(@NotNull ProcessAW temp) {
+		try {
+			temp.stack.set(Register.mar.data-temp.data.length, Register.mbr.data);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			temp.stack.add(Register.mbr.data);
+		}
 	}
 
-	private void storeHeap(ProcessAW temp) {
-		temp.stack.set(Register.mar.data, Register.mbr.data);
+	private void storeHeap(@NotNull ProcessAW temp) {
+		try {
+			temp.heap.set(Register.mar.data-temp.stackSize-temp.data.length, Register.mbr.data);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			temp.heap.add(Register.mbr.data);
+		}
 	}
 }

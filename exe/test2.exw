@@ -1,9 +1,8 @@
 .STACK
 2
 .DATA
-a 1
+a 5
 b 3
-c ?
 .CODE
 LDI 1
 ADD a
@@ -14,6 +13,5 @@ STA x
 LDA x
 PRT a
 PRT b
-PRT c
 PRT x
 HLT

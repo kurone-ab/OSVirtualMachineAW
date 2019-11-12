@@ -21,6 +21,7 @@ public class ParserAW {
         variables = new HashMap<>();
         codeV = new Vector<>();
         dataV = new Vector<>();
+        size = address = 0;
     }
 
     public static void parse() {
@@ -32,31 +33,29 @@ public class ParserAW {
         }
         if (size == 0) size = 10;
         var = scanner.next();
-        while (!var.equals(code)) {
+        while (!var.equals(code)) {//parsing data area
             temp = scanner.next();
-            dataV.add(temp.matches(".?") ? 0 : Integer.parseInt(temp));
-            variables.put(var, address);
-            address++;
-            System.out.println(var + " " + temp);
+            if (!var.matches("^[a-zA-Z][0-9|a-zA-Z]*")) {//variable name check with regex
+                var = scanner.next();//variable names cannot begin with numbers.
+                continue;
+            }
+            dataV.add(temp.equals("?") ? 0 : Integer.parseInt(temp));
+            variables.put(var, address++);
             var = scanner.next();
         }
         scanner.nextLine();
-        while (scanner.hasNext()) {
+        while (scanner.hasNext()) {//parsing code area
             String[] codes = scanner.nextLine().split(" ");
-            System.out.println(Arrays.toString(codes));
             int byteCode = decode(codes[0]);
             byteCode = byteCode << 16;
-            try {
-                temp = codes[1];
-            } catch (ArrayIndexOutOfBoundsException e) {
-                temp = "0";
-            }
-            try {
-                byteCode += variables.getOrDefault(temp, Integer.parseInt(temp));
-            } catch (NumberFormatException e) {
-                variables.put(temp, address);
-                address++;
-            }
+            if (codes.length==1) temp = "0";
+            else temp = codes[1];
+            if (temp.matches("^[a-zA-Z][0-9|a-zA-Z]*")) {//variable name check with regex
+                variables.putIfAbsent(temp, address++);
+                byteCode += variables.get(temp);
+            }else if (temp.matches("[0-9]+"))
+                byteCode += Integer.parseInt(temp);
+            else continue;
             codeV.add(byteCode);
         }
         if (size == 0) size = 10;//stack size is 10 if user doesn't determined stack size.
@@ -67,7 +66,7 @@ public class ParserAW {
             if (inst.name().equals(instruction))
                 return inst.ordinal();
         }
-        throw new IllegalStateException(instruction);
+        throw new IllegalStateException();
     }
 
     public static int stackSize() {
@@ -75,17 +74,17 @@ public class ParserAW {
     }
 
     public static int[] parseCode() {
-        return new int[1];
+        int i = 0;
+        int[] array = new int[codeV.size()];
+        for (int a:codeV) array[i++] = a;
+        return array;
     }
 
     public static int[] parseData() {
-        while (scanner.nextLine().equals(data)) {
-        }
-        while (scanner.hasNextLine()) {
-            variables.put(scanner.next(), scanner.nextInt());
-        }
-
-        return new int[1];
+        int i = 0;
+        int[] array = new int[dataV.size()];
+        for (int a:dataV) array[i++] = a;
+        return array;
     }
 
 }

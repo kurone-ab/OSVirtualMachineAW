@@ -17,6 +17,7 @@ class ControlUnit {
 		Register.mar.data = Register.pc.data;
 		MainBoard.ram.fetchInstruction();
 		Register.ir.data = Register.mbr.data;
+		Register.pc.data++;
 	}
 
 	void decode() {
@@ -28,6 +29,7 @@ class ControlUnit {
 			case LDA: LDA(); break;
 			case LDI: LDI(); break;
 			case STA: STA(); break;
+			case ASN: ASN(); break;
 			case ADD: ADD(); break;
 			case SUB: SUB(); break;
 			case MUL: MUL(); break;
@@ -41,6 +43,7 @@ class ControlUnit {
 			case JSN: JSN(); break;
 			case ITR: ITR(); break;
 			case HLT: HLT(); break;
+			case PRT: PRT(); break;
 		}
 	}
 
@@ -57,6 +60,12 @@ class ControlUnit {
 	private void STA() {
 		Register.mar.data = Register.ir.data & 0x0000ffff;
 		Register.mbr.data = Register.ac.data;
+		MainBoard.ram.storeData();
+	}
+
+	private void ASN() {
+		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.mbr.data = 0;
 		MainBoard.ram.storeData();
 	}
 
@@ -127,6 +136,13 @@ class ControlUnit {
 
 	private void HLT(){
 		Register.status.data |= 0x00001000;
+	}
+
+	private void PRT() throws StackOverFlowExceptionAW {
+		Register.mar.data = Register.ir.data & 0x0000ffff;
+		MainBoard.ram.fetchData();
+		Register.ac.data = Register.mbr.data;
+		System.out.println("ac data: "+Register.ac.data);
 	}
 
 }
