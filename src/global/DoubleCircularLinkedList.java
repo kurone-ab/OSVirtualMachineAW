@@ -55,6 +55,7 @@ public class DoubleCircularLinkedList<T> implements Serializable {
     public void reset(){
         this.head = this.current = null;
         this.size = 0;
+        System.gc();
     }
 
     public T get(int i) {

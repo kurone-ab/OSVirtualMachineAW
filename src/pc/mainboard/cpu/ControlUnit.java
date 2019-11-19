@@ -3,9 +3,6 @@ package pc.mainboard.cpu;
 
 import global.StackOverFlowExceptionAW;
 import pc.mainboard.MainBoard;
-import pc.mainboard.RandomAccessMemory;
-
-import java.lang.reflect.InvocationTargetException;
 
 class ControlUnit {
 	private static CentralProcessingUnit.Instruction instruction;
@@ -14,14 +11,14 @@ class ControlUnit {
 	}
 
 	void fetch() {
-		Register.mar.data = Register.pc.data;
+		Register.MAR.data = Register.PC.data;
 		MainBoard.ram.fetchInstruction();
-		Register.ir.data = Register.mbr.data;
-		Register.pc.data++;
+		Register.IR.data = Register.MBR.data;
+		Register.PC.data++;
 	}
 
 	void decode() {
-		instruction = CentralProcessingUnit.Instruction.values()[Register.ir.data >>> 16];
+		instruction = CentralProcessingUnit.Instruction.values()[Register.IR.data >>> 16];
 	}
 
 	void execute() throws StackOverFlowExceptionAW {
@@ -48,101 +45,101 @@ class ControlUnit {
 	}
 
 	private void LDA() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
-		Register.ac.data = Register.mbr.data;
+		Register.AC.data = Register.MBR.data;
 	}
 
 	private void LDI() {
-		Register.ac.data = Register.ir.data & 0x0000ffff;
+		Register.AC.data = Register.IR.data & 0x0000ffff;
 	}
 
 	private void STA() {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
-		Register.mbr.data = Register.ac.data;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
+		Register.MBR.data = Register.AC.data;
 		MainBoard.ram.storeData();
 	}
 
 	private void ASN() {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
-		Register.mbr.data = 0;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
+		Register.MBR.data = 0;
 		MainBoard.ram.storeData();
 	}
 
 	private void ADD() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
 		CentralProcessingUnit.alu.ADD();
 	}
 
 	private void SUB() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
 		CentralProcessingUnit.alu.SUB();
 	}
 
 	private void MUL() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
 		CentralProcessingUnit.alu.MUL();
 	}
 
 	private void DIV() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
 		CentralProcessingUnit.alu.DIV();
 	}
 
 	private void AND() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
 		CentralProcessingUnit.alu.AND();
 	}
 
 	private void OR() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
 		CentralProcessingUnit.alu.OR();
 	}
 
 	private void NOT() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
 		CentralProcessingUnit.alu.NOT();
 	}
 
 	private void XOR() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
 		CentralProcessingUnit.alu.XOR();
 	}
 
 	private void JMP() {
-		Register.pc.data = Register.ir.data & 0x0000ffff;
+		Register.PC.data = Register.IR.data & 0x0000ffff;
 	}
 
 	private void JSZ() {
-		if ((Register.status.data&0x00000010)!=0) Register.pc.data = Register.ir.data & 0x0000ffff;
+		if ((Register.STATUS.data&0x00000010)!=0) Register.PC.data = Register.IR.data & 0x0000ffff;
 	}
 
 	private void JSN() {
-		if ((Register.status.data&0x00000100)!=0) Register.pc.data = Register.ir.data & 0x0000ffff;
+		if ((Register.STATUS.data&0x00000100)!=0) Register.PC.data = Register.IR.data & 0x0000ffff;
 	}
 
 	private void ITR(){
-		Register.status.data |= 0x00000001;
-		Register.itr.data = Register.ir.data & 0x0000ffff;
+		Register.STATUS.data |= 0x00000001;
+		Register.ITR.data = Register.IR.data & 0x0000ffff;
 	}
 
 	private void HLT(){
-		Register.status.data |= 0x00001000;
+		Register.STATUS.data |= 0x00001000;
 	}
 
 	private void PRT() throws StackOverFlowExceptionAW {
-		Register.mar.data = Register.ir.data & 0x0000ffff;
+		Register.MAR.data = Register.IR.data & 0x0000ffff;
 		MainBoard.ram.fetchData();
-		Register.ac.data = Register.mbr.data;
-		System.out.println("ac data: "+Register.ac.data);
+		Register.AC.data = Register.MBR.data;
+		System.out.println("ac data: "+Register.AC.data);
 	}
 
 }

@@ -7,8 +7,7 @@ import java.util.Vector;
 
 public class ProcessAW {
 	public int pid, stackSize;
-	public int[] code, data;
-	public Vector<Integer> stack, heap;
+	public int[] code, data, stack, heap;
 
 	@Override
 	public boolean equals(Object o) {

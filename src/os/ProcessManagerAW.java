@@ -29,18 +29,18 @@ public class ProcessManagerAW {
         pcb.pid = processAW.pid;
         pcb.ps = Status.neww;
         pcb.registers = new int[Register.values().length];
-        pcb.registers[Register.pc.ordinal()] = 0;
-        pcb.registers[Register.sp.ordinal()] = index;
+        pcb.registers[Register.PC.ordinal()] = 0;
+        pcb.registers[Register.SP.ordinal()] = index;
         pcbs.put(processAW.pid, pcb);
-        readyProcess(pcb, index);
+        readyProcess(pcb);
         if (ready.size() == 1) {
             Thread run = new Thread(() -> this.run(pcb));
             run.start();
         }
     }
 
-    private void readyProcess(ProcessControlBlock pcb, int index) {
-        ready.add(index);
+    private void readyProcess(ProcessControlBlock pcb) {
+        ready.add(pcb.pid);
         pcb.ps = Status.ready;
     }
 
@@ -54,7 +54,7 @@ public class ProcessManagerAW {
         long start = System.nanoTime();
         while (!ready.isEmpty()) {
 //            try {
-//                Thread.sleep(500);
+//                Thread.sleep(100);
 //            } catch (InterruptedException e) {
 //                e.printStackTrace();
 //            }
@@ -62,15 +62,15 @@ public class ProcessManagerAW {
             try {
                 MainBoard.cpu.clock();
             } catch (StackOverFlowExceptionAW stackOverFlowExceptionAW) {
-                Register.status.data |= 0x00001000;//halt
+                Register.STATUS.data |= 0x00001000;//halt
             }
-            if (interrupted()) {
+            if (interrupted()) {// TODO: 2019-11-12 make interrupt
                 int index = OperatingSystem.memoryManagerAW.processAddress(ready.current);
                 this.contextSwitch(Status.wait);
                 ready.remove(index);
                 wait.add(index);
                 isr = new Thread(() -> {
-                    OperatingSystem.isr = InterruptVectorTable.ivt.get(Register.itr.data);
+                    OperatingSystem.isr = InterruptVectorTable.ivt.get(Register.ITR.data);
                     OperatingSystem.isr.handle(ready.current);
                 });
                 isr.start();
@@ -79,9 +79,9 @@ public class ProcessManagerAW {
             }
             if (halt()) {
                 System.out.println("halt");
-                int index = OperatingSystem.memoryManagerAW.unload(ready.current);
+                OperatingSystem.memoryManagerAW.unload(ready.current);
                 int pid = ready.current;
-                ready.remove(index);
+                ready.remove(pid);
                 this.pcbs.remove(pid);
                 this.stackPointerReset();
                 this.contextSwitch(Status.terminate);
@@ -93,7 +93,7 @@ public class ProcessManagerAW {
                 this.contextSwitch(Status.ready);
                 start = System.nanoTime();
             }
-            System.out.println("time left: "+(System.nanoTime() - start));
+            System.out.println("time left: "+(OperatingSystem.TIME_SLICE-(System.nanoTime() - start)));
         }
     }
 
@@ -116,7 +116,7 @@ public class ProcessManagerAW {
                 pcb.registers[i] = registers[i].data;
         }
 
-        ready.current = OperatingSystem.memoryManagerAW.getProcess(ready.next());
+        ready.current = ready.next();
 
         //context load
         pcb = pcbs.get(ready.current);
@@ -132,18 +132,18 @@ public class ProcessManagerAW {
             Integer key = keys.nextElement();
             ProcessControlBlock pcb = this.pcbs.get(key);
             int sp = OperatingSystem.memoryManagerAW.processAddress(pcb.pid);
-            pcb.registers[Register.sp.ordinal()] = sp;
+            pcb.registers[Register.SP.ordinal()] = sp;
             this.ready.add(sp);
             this.pcbs.replace(key, pcb);
         }
     }
 
     private boolean interrupted() {
-        return (Register.status.data & 0x00000001) != 0;
+        return (Register.STATUS.data & 0x00000001) != 0;
     }
 
     private boolean halt() {
-        return (Register.status.data & 0x00001000) != 0;
+        return (Register.STATUS.data & 0x00001000) != 0;
     }
 
     private static class SchedulingQueue extends DoubleCircularLinkedList<Integer> {

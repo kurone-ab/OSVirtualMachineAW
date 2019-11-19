@@ -14,31 +14,29 @@ class MemoryManagerAW {
 		this.memoryIndexTable = new Hashtable<>();
 	}
 
-	synchronized void load(ProcessAW processAW){
-		int index = MainBoard.ram.memory.size();
-		OperatingSystem.processManagerAW.setProcessID(processAW);
-		this.memoryIndexTable.put(processAW.pid, index);
-		MainBoard.ram.memory.add(processAW);
-		OperatingSystem.processManagerAW.newProcess(index, processAW);
+	synchronized void load(ProcessAW processAW) {
+		int bound = MainBoard.ram.memory.length;
+		for (int i = 0; i < bound; i++) {
+			if (MainBoard.ram.memory[i] == null) {
+				OperatingSystem.processManagerAW.setProcessID(processAW);
+				this.memoryIndexTable.put(processAW.pid, i);
+				MainBoard.ram.memory[i] = processAW;
+				OperatingSystem.processManagerAW.newProcess(i, processAW);
+				return;
+			}
+		}
+
 	}
 
-	synchronized int unload(int pid){
+	synchronized void unload(int pid) {
 		int index = this.memoryIndexTable.get(pid);
 		this.memoryIndexTable.remove(pid);
-		MainBoard.ram.memory.remove(index);
-		reinitialize();
-		return index;
+		MainBoard.ram.memory[index] = null;
+		System.gc();
 	}
 
-	private void reinitialize(){
-		IntStream.range(0, MainBoard.ram.memory.size()).forEach(i -> this.memoryIndexTable.replace(MainBoard.ram.memory.get(i).pid, i));
-	}
-
-	int processAddress(int pid){
+	int processAddress(int pid) {
 		return this.memoryIndexTable.get(pid);
 	}
 
-	int getProcess(int address){
-		return MainBoard.ram.memory.get(address).pid;
-	}
 }
