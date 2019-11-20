@@ -6,7 +6,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.Vector;
 
 public class ProcessAW {
-	public int pid, stackSize;
+	public int pid;
 	public int[] code, data, stack, heap;
 
 	@Override
