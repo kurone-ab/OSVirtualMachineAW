@@ -3,11 +3,14 @@ package os;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.Stack;
 import java.util.Vector;
 
 public class ProcessAW {
-	public int pid;
-	public int[] code, data, stack, heap;
+	int pid;
+	public int[] code, data;
+	public Stack<ActivationRecord> stack;
+	public Vector<Instance> heap;
 
 	@Override
 	public boolean equals(Object o) {

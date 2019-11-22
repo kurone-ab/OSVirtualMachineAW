@@ -24,9 +24,9 @@ class ControlUnit {
 	void execute() throws StackOverFlowExceptionAW {
 		switch (instruction){
 			case LDA: LDA(); break;
-			case LDI: LDI(); break;
+			case LDPI: LDI(); break;
 			case STA: STA(); break;
-			case ASN: ASN(); break;
+			case ALC: ASN(); break;
 			case ADD: ADD(); break;
 			case SUB: SUB(); break;
 			case MUL: MUL(); break;
@@ -39,10 +39,12 @@ class ControlUnit {
 			case JSZ: JSZ(); break;
 			case JSN: JSN(); break;
 			case ITR: ITR(); break;
+			case FNC: FNC(); break;
+			case RTN: RTN(); break;
 			case HLT: HLT(); break;
-			case PRT: PRT(); break;
 		}
 	}
+
 
 	private void LDA() throws StackOverFlowExceptionAW {
 		Register.MAR.data = Register.IR.data & 0x0000ffff;
@@ -129,6 +131,13 @@ class ControlUnit {
 	private void ITR(){
 		Register.STATUS.data |= 0x00000001;
 		Register.ITR.data = Register.IR.data & 0x0000ffff;
+	}
+
+	private void FNC(){
+
+	}
+
+	private void RTN() {
 	}
 
 	private void HLT(){

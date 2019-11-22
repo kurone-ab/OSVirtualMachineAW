@@ -8,11 +8,9 @@ public class CentralProcessingUnit {
 	private static final ControlUnit cu = new ControlUnit();
 	static final ArithmeticLogicUnit alu = new ArithmeticLogicUnit();
 
-	@Contract(pure = true)
 	private CentralProcessingUnit() {
 	}
 
-	@Contract(pure = true)
 	public static CentralProcessingUnit getInstance() {
 		return cpu;
 	}
@@ -24,11 +22,12 @@ public class CentralProcessingUnit {
 	}
 
 	public enum Instruction {
-		LDA, LDI, STA, ASN, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, HLT, PRT
+		LDA, LDPI, LDNI, STA, ALC, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, FNC, RTN, NEW, HLT
 		/* load address
-		 * load integer value
+		 * load positive integer value
+		 * load negative integer value
 		 * store address
-		 * assignment
+		 * allocation
 		 * add
 		 * subtract
 		 * multiple
@@ -41,8 +40,10 @@ public class CentralProcessingUnit {
 		 * jump if zero is true
 		 * jump if negative is true
 		 * interrupt
+		 * function call
+		 * return
+		 * new
 		 * halt
-		 * print
 		 */
 	}
 }

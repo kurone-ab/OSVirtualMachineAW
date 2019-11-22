@@ -2,29 +2,26 @@ package global;
 
 import pc.mainboard.cpu.CentralProcessingUnit;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Scanner;
-import java.util.Vector;
+import java.util.*;
 
 public class ParserAW {
-    private static final String stack = ".STACK", data = ".DATA", code = ".CODE", annotation = "/--";
-    private static String sentence;
-    private static Scanner scanner;
-    private static HashMap<String, Integer> variables;
-    private static Vector<Integer> codeV, dataV;
-    private static int size, address;
+    private final String stack = ".STACK", data = ".DATA", code = ".CODE", imports = ".IMPORT";
+    private String sentence;
+    private Scanner scanner;
+    private Hashtable<String, Integer> variables, functions, instances;
+    private Vector<Integer> codeV, dataV;
+    private int size, address;
 
-    public static void prepareParsing(String sentence) {
-        ParserAW.sentence = sentence;
+    public ParserAW(String sentence) {
+        this.sentence = sentence;
         scanner = new Scanner(sentence);
-        variables = new HashMap<>();
+        variables = new Hashtable<>();
         codeV = new Vector<>();
         dataV = new Vector<>();
         size = address = 0;
     }
 
-    public static void parse() {
+    public void parse() {
         String temp;
         String var = scanner.next();
         while (!var.equals(data)) {
@@ -61,26 +58,26 @@ public class ParserAW {
         if (size == 0) size = 10;//stack size is 10 if user doesn't determined stack size.
     }
 
-    private static int decode(String instruction) {
+    private int decode(String instruction) throws IllegalInstructionException {
         for (CentralProcessingUnit.Instruction inst : CentralProcessingUnit.Instruction.values()) {
             if (inst.name().equals(instruction))
                 return inst.ordinal();
         }
-        throw new IllegalStateException();
+        throw new IllegalInstructionException();
     }
 
-    public static int stackSize() {
+    public int stackSize() {
         return size;
     }
 
-    public static int[] parseCode() {
+    public int[] parseCode() {
         int i = 0;
         int[] array = new int[codeV.size()];
         for (int a:codeV) array[i++] = a;
         return array;
     }
 
-    public static int[] parseData() {
+    public int[] parseData() {
         int i = 0;
         int[] array = new int[dataV.size()];
         for (int a:dataV) array[i++] = a;
