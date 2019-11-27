@@ -1,6 +1,7 @@
 package os;
 
 import global.StackOverFlowExceptionAW;
+import pc.io.IODevice;
 import pc.mainboard.MainBoard;
 
 public class OperatingSystem {
@@ -16,6 +17,10 @@ public class OperatingSystem {
 		memoryManagerAW = new MemoryManagerAW();
 		fileManagerAW = new FileManagerAW();
 		deviceManagerAW = new DeviceManagerAW();
+	}
+
+	public void connect(IODevice device){
+
 	}
 
 }
