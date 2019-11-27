@@ -27,7 +27,7 @@ public class ProcessManagerAW {
     synchronized void newProcess(int index, ProcessAW processAW) {
         ProcessControlBlock pcb = new ProcessControlBlock();
         pcb.pid = processAW.pid;
-        pcb.ps = Status.neww;
+        pcb.ps = State.NEW;
         pcb.registers = new int[Register.values().length];
         pcb.registers[Register.PC.ordinal()] = 0;
         pcb.registers[Register.SP.ordinal()] = index;
@@ -41,11 +41,11 @@ public class ProcessManagerAW {
 
     private void readyProcess(ProcessControlBlock pcb) {
         ready.add(pcb.pid);
-        pcb.ps = Status.ready;
+        pcb.ps = State.READY;
     }
 
     private void run(ProcessControlBlock pcb) {
-        pcb.ps = Status.run;
+        pcb.ps = State.RUN;
         Thread isr;
         Register[] registers = Register.values();//Initialize the register to the value of pcb before run.
         for (int i = 0; i < registers.length; i++)
@@ -66,7 +66,7 @@ public class ProcessManagerAW {
             }
             if (interrupted()) {// TODO: 2019-11-12 make interrupt
                 int index = OperatingSystem.memoryManagerAW.processAddress(ready.current);
-                this.contextSwitch(Status.wait);
+                this.contextSwitch(State.WAIT);
                 ready.remove(index);
                 wait.add(index);
                 isr = new Thread(() -> {
@@ -84,13 +84,13 @@ public class ProcessManagerAW {
                 ready.remove(pid);
                 this.pcbs.remove(pid);
                 this.stackPointerReset();
-                this.contextSwitch(Status.terminate);
+                this.contextSwitch(State.TERMINATE);
                 start = System.nanoTime();
                 continue;
             }
             if ((System.nanoTime() - start) > OperatingSystem.TIME_SLICE) {
                 System.out.println("time expired");
-                this.contextSwitch(Status.ready);
+                this.contextSwitch(State.READY);
                 start = System.nanoTime();
             }
             System.out.println("time left: "+(OperatingSystem.TIME_SLICE-(System.nanoTime() - start)));
@@ -104,14 +104,15 @@ public class ProcessManagerAW {
         ready.add(index);
     }
 
-    private void contextSwitch(Status status) {
+    private void contextSwitch(State state) {
         if (ready.isEmpty()) return;
         ProcessControlBlock pcb;
+
         Register[] registers = Register.values();
-        if (status != Status.terminate) {
+        if (state != State.TERMINATE) {
             //context save
             pcb = pcbs.get(ready.current);
-            pcb.ps = status;
+            pcb.ps = state;
             for (int i = 0; i < registers.length; i++)
                 pcb.registers[i] = registers[i].data;
         }
@@ -120,7 +121,7 @@ public class ProcessManagerAW {
 
         //context load
         pcb = pcbs.get(ready.current);
-        pcb.ps = Status.run;
+        pcb.ps = State.RUN;
         for (int i = 0; i < registers.length; i++)
             registers[i].data = pcb.registers[i];
     }

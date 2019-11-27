@@ -6,7 +6,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class ProcessControlBlock {
 	int pid;
 	int[] registers;
-	Status ps;
+	State ps;
 
 	@Override
 	public boolean equals(Object o) {

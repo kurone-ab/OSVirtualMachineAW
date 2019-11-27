@@ -1,0 +1,11 @@
+allocate 3
+import test3
+static a = 10
+func start(){
+f(a)
+}
+func f(a) {
+    use test3 as t3
+    b = t3.f()
+    a = a + b
+}

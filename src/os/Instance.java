@@ -3,5 +3,9 @@ package os;
 import java.util.Vector;
 
 public class Instance {
-	public Vector<Integer> member;
+	public int[] member;
+
+	public Instance(int size) {
+		this.member = new int[size];
+	}
 }
