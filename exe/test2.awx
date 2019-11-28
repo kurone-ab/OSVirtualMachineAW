@@ -14,7 +14,7 @@ func c(){
     irpt 1
 }
 func d(){
-    if not a == 5{
+    if a == 5{
         a = 1
     }
     while a < 10{
