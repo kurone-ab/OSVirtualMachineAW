@@ -16,13 +16,14 @@ public class ParserAW {
 	private static final Pattern fnc_pattern = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*\\.?)+\\([a-zA-Z0-9, ?]*\\)");
 	private static final Pattern fn_name_pattern = Pattern.compile("[a-zA-Z][a-zA-Z0-9]*\\(");
 	private static final Pattern var_pattern = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*\\.?)+");
-	private static final Pattern parameter_pattern = Pattern.compile("\\([a-zA-Z0-9, ]+\\)");
+	private static final Pattern parameter_pattern = Pattern.compile("\\([a-zA-Z0-9., ]+\\)");
+	private static final Pattern parameter_element_pattern = Pattern.compile("[a-zA-Z0-9.]+");
+	boolean isMain;
 	private Scanner scanner;
 	private Hashtable<String, Integer> variables, functions, instances;
 	private Hashtable<String, ParserAW> importModules;
-	private Vector<Integer> codeV, dataV;
+	private ArrayList<Integer> codeV, dataV;
 	private int size, address, heap, heapAddress;
-	private boolean isMain;
 
 	public ParserAW(String sentence) {
 		this.scanner = new Scanner(sentence);
@@ -30,8 +31,8 @@ public class ParserAW {
 		this.functions = new Hashtable<>();
 		this.instances = new Hashtable<>();
 		this.importModules = new Hashtable<>();
-		this.codeV = new Vector<>();
-		this.dataV = new Vector<>();
+		this.codeV = new ArrayList<>();
+		this.dataV = new ArrayList<>();
 		this.size = address = 0;
 	}
 
@@ -107,8 +108,13 @@ public class ParserAW {
 						matcher.find();
 						String fn_name = matcher.group().replace("(", "");
 						this.functions.put(fn_name, this.codeV.size());
-						if (fn_name.equals(main)) this.isMain = true;
-						line = this.scanner.nextLine();// TODO: 2019-11-28 파라미터를 읽어야한다.
+						if (fn_name.equals(main)) {
+							this.isMain = true;
+							int instruction = CentralProcessingUnit.Instruction.FNC.ordinal() << 24;
+							instruction += this.functions.get(main) + 1;
+							this.codeV.add(instruction);
+						}
+						line = this.scanner.nextLine();
 						matcher = parameter_pattern.matcher(next);
 						if (matcher.find()) {
 							String s = matcher.group();
@@ -119,33 +125,18 @@ public class ParserAW {
 						}
 						while (!line.equals("}")) {
 							tokenizer = new StringTokenizer(line);
-							String temp = tokenizer.nextToken();
-							if (var_pattern.matcher(temp).matches()) {
+							String store_target = tokenizer.nextToken();
+							if (var_pattern.matcher(store_target).matches()) {
 								if (tokenizer.hasMoreTokens()) {//assignment and initialize
 									String operator = tokenizer.nextToken();
 									if (operator.equals("=")) {
 										String value = tokenizer.nextToken();
 										if (number_pattern.matcher(value).matches()) {
-											int x = Integer.parseInt(value);
-											if (!this.variables.containsKey(temp))
-												arVariables.put(temp, this.address++);
-											if (x < 0) {
-												int instruction = CentralProcessingUnit.Instruction.LDNI.ordinal() << 24;
-												instruction += -x;
-												this.codeV.add(instruction);
-											} else {
-												int instruction = CentralProcessingUnit.Instruction.LDPI.ordinal() << 24;
-												instruction += x;
-												this.codeV.add(instruction);
-											}
-										} else if (var_pattern.matcher(value).matches()) {
-											Object adr = arVariables.get(next);
-											if (adr == null) adr = this.variables.get(next);
-											if (adr == null) throw new IllegalFormatException();
+											this.loadInteger(value);
+										} else if (var_pattern.matcher(value).matches()) {//this is variable
 											int instruction = CentralProcessingUnit.Instruction.LDA.ordinal() << 24;
-											instruction += (int) adr;
-											this.codeV.add(instruction);
-										} else if (fnc_pattern.matcher(value).matches()) {
+											this.loadVariable(instruction, value, arVariables);
+										} else if (fnc_pattern.matcher(value).matches()) {//this is function call
 											int instruction = CentralProcessingUnit.Instruction.FNC.ordinal() << 24;
 											matcher = fn_name_pattern.matcher(value);
 											matcher.find();
@@ -153,17 +144,20 @@ public class ParserAW {
 											instruction += this.functions.get(fn_name);
 											this.codeV.add(instruction);
 											matcher = parameter_pattern.matcher(value);
-											if (matcher.find()) {
+											if (matcher.find()) {//function has parameter
 												String parameters = matcher.group();
-												matcher = var_pattern.matcher(parameters);
+												matcher = parameter_element_pattern.matcher(parameters);
+												int i = 0;
 												while (matcher.find()) {
+													String parameter = matcher.group();
+													instruction = CentralProcessingUnit.Instruction.LDA.ordinal() << 24;
+													if (var_pattern.matcher(parameter).matches()) this.loadVariable(instruction, parameter, arVariables);//parameter is variable
+													else if (number_pattern.matcher(parameter).matches()) this.loadInteger(value);//parameter is integer
 													instruction = CentralProcessingUnit.Instruction.STP.ordinal() << 24;
+													instruction += 1 << 20;
+													instruction += i;
+													this.codeV.add(instruction);
 												}
-												matcher = number_pattern.matcher(parameters);
-												while (matcher.find()) {
-													instruction = CentralProcessingUnit.Instruction.STP.ordinal() << 24;
-												}
-
 											}
 										}
 										while (tokenizer.hasMoreTokens()) {
@@ -198,21 +192,18 @@ public class ParserAW {
 											}
 										}
 										int instruction = CentralProcessingUnit.Instruction.STA.ordinal() << 24;
-										Object adr = this.variables.get(next);
+										Integer adr = this.variables.get(store_target);
 										if (adr == null) {
-											arVariables.putIfAbsent(next, this.address++);
-											adr = arVariables.get(next);
-											instruction += 1 << 12;
+											Integer integer = arVariables.putIfAbsent(store_target, this.address);
+											if (integer == null) this.address++;
+											adr = arVariables.get(store_target);
+											instruction += (1 << 20);
 										}
-										instruction += (int) adr;
+										instruction += adr;
 										this.codeV.add(instruction);
-
 									} else throw new IllegalFormatException();
-
-
 								} else arVariables.put(next, this.address++);//assignment only
-
-							} else if (temp.equals("use")) {
+							} else if (store_target.equals("use")) {
 								ParserAW parser = this.importModules.get(tokenizer.nextToken());
 								if (parser != null)
 									if (tokenizer.nextToken().equals(as)) {
@@ -223,21 +214,21 @@ public class ParserAW {
 										} else throw new IllegalFormatException();
 									} else throw new IllegalFormatException();
 								else throw new IllegalFormatException();
-							} else if (temp.equals("irpt")) {
+							} else if (store_target.equals("irpt")) {
 								int instruction = CentralProcessingUnit.Instruction.ITR.ordinal() << 24;
 								String id = tokenizer.nextToken();
 								if (number_pattern.matcher(id).matches()) {
 									instruction += Integer.parseInt(id);
 									this.codeV.add(instruction);
 								} else throw new IllegalFormatException();
-							} else if (temp.equals("if")) {// TODO: 2019-11-28 complete if statement
+							} else if (store_target.equals("if")) {// TODO: 2019-11-28 complete if statement
 								int instruction = CentralProcessingUnit.Instruction.ITR.ordinal() << 24;
 								String id = tokenizer.nextToken();
 								if (number_pattern.matcher(id).matches()) {
 									instruction += Integer.parseInt(id);
 									this.codeV.add(instruction);
 								} else throw new IllegalFormatException();
-							} else if (temp.equals("while")) {// TODO: 2019-11-28 complete while statement
+							} else if (store_target.equals("while")) {// TODO: 2019-11-28 complete while statement
 								int instruction = CentralProcessingUnit.Instruction.ITR.ordinal() << 24;
 								String id = tokenizer.nextToken();
 								if (number_pattern.matcher(id).matches()) {
@@ -256,6 +247,7 @@ public class ParserAW {
 			}
 		}
 	}
+
 
 	private int decode(String instruction) throws IllegalInstructionException {
 		for (CentralProcessingUnit.Instruction inst : CentralProcessingUnit.Instruction.values()) {
@@ -315,6 +307,30 @@ public class ParserAW {
 			if (adr == null) throw new IllegalFormatException();
 			int instruction = operation << 24;
 			instruction += (int) adr;
+			this.codeV.add(instruction);
+		}
+	}
+
+	private void loadVariable(int instruction, String variable, HashMap<String, Integer> arVariables) throws IllegalFormatException {
+		Integer adr = this.variables.get(variable);
+		if (adr == null) {
+			adr = arVariables.get(variable);
+			instruction += (1 << 20);
+			if (adr == null) throw new IllegalFormatException();
+		}
+		instruction += adr;
+		this.codeV.add(instruction);
+	}
+
+	private void loadInteger(String value) {
+		int x = Integer.parseInt(value);
+		if (x < 0) {
+			int instruction = CentralProcessingUnit.Instruction.LDNI.ordinal() << 24;
+			instruction += -x;
+			this.codeV.add(instruction);
+		} else {
+			int instruction = CentralProcessingUnit.Instruction.LDPI.ordinal() << 24;
+			instruction += x;
 			this.codeV.add(instruction);
 		}
 	}
