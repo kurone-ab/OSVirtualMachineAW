@@ -26,7 +26,7 @@ class ControlUnit {
 			case LDA: LDA(); break;
 			case LDPI: LDI(); break;
 			case STA: STA(); break;
-			case ALC: ASN(); break;
+			case ASN: ASN(); break;
 			case ADD: ADD(); break;
 			case SUB: SUB(); break;
 			case MUL: MUL(); break;
@@ -134,7 +134,7 @@ class ControlUnit {
 	}
 
 	private void FNC(){
-
+		// TODO: 2019-12-01 Create Activation Record
 	}
 
 	private void RTN() {

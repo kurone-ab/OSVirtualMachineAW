@@ -4,9 +4,9 @@ import global.StackOverFlowExceptionAW;
 import org.jetbrains.annotations.Contract;
 
 public class CentralProcessingUnit {
+	static final ArithmeticLogicUnit alu = new ArithmeticLogicUnit();
 	private static final CentralProcessingUnit cpu = new CentralProcessingUnit();
 	private static final ControlUnit cu = new ControlUnit();
-	static final ArithmeticLogicUnit alu = new ArithmeticLogicUnit();
 
 	private CentralProcessingUnit() {
 	}
@@ -22,7 +22,8 @@ public class CentralProcessingUnit {
 	}
 
 	public enum Instruction {
-		LDA, LDPI, LDNI, HDS, STP, STA, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, FNC, RTN, NEW, HLT
+		LDA, LDPI, LDNI,
+		ASN, HDS, STP, STA, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, FNC, RTN, NEW, HLT
 		/* load address
 		 * load positive integer value
 		 * load negative integer value
