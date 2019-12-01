@@ -17,10 +17,10 @@ public class RandomAccessMemory {
 		if (Register.MAR.data < temp.data.length) {
 			Register.MBR.data = temp.data[Register.MAR.data];
 		} else if (Register.MAR.data < temp.stack.length + temp.data.length) {
-			Register.MBR.data = temp.stack[Register.MAR.data - temp.data.length];
+//			Register.MBR.data = temp.stack[Register.MAR.data - temp.data.length];
 		} else {
 			if (Register.MAR.data > temp.stack.length + temp.data.length) throw new StackOverFlowExceptionAW();
-			Register.MBR.data = temp.heap[Register.MAR.data - temp.stack.length - temp.data.length];
+//			Register.MBR.data = temp.heap[Register.MAR.data - temp.stack.length - temp.data.length];
 		}
 	}
 
@@ -29,9 +29,9 @@ public class RandomAccessMemory {
 		if (Register.MAR.data < temp.data.length) {
 			temp.data[Register.MAR.data] = Register.MBR.data;
 		} else if (Register.MAR.data < temp.stack.length + temp.data.length) {
-			temp.stack[Register.MAR.data - temp.data.length] = Register.MBR.data;
+//			temp.stack[Register.MAR.data - temp.data.length] = Register.MBR.data;
 		} else {
-			temp.heap[Register.MAR.data - temp.stack.length - temp.data.length] = Register.MBR.data;
+//			temp.heap[Register.MAR.data - temp.stack.length - temp.data.length] = Register.MBR.data;
 		}
 	}
 }

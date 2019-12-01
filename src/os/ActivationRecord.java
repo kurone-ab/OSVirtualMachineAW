@@ -6,9 +6,9 @@ public class ActivationRecord {
 	public int previousAR, returnPC, returnValue;
 	public int[] local;
 
-	public ActivationRecord(int previousAR, int returnPC) {
+	public ActivationRecord(int previousAR, int returnPC, int size) {
 		this.previousAR = previousAR;
 		this.returnPC = returnPC;
-		this.local = new int[10];
+		this.local = new int[size];
 	}
 }

@@ -2,22 +2,29 @@ allocate 3
 import test3
 static a = 10
 
-func main(){
-    f(a)
-}
 func f(a) {
     use test3 as t3
     b = t3.f()
     a = a + b
+    return
 }
-func c(){
+
+func main() {
+    f(a)
+    return
+}
+
+func c() {
     irpt 1
+    return
 }
-func d(){
-    if a == 5{
+
+func d() {
+    if a == 5 {
         a = 1
     }
-    while a < 10{
+    while a < 10 {
         a = a + 1
     }
+    return
 }

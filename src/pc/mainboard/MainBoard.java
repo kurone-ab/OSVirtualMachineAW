@@ -1,5 +1,9 @@
 package pc.mainboard;
 
+import global.DuplicateVariableException;
+import global.IllegalFormatException;
+import global.IllegalInstructionException;
+import os.CompilerAW;
 import os.Loader;
 import os.OperatingSystem;
 import pc.PersistenceStorage;
@@ -28,21 +32,16 @@ public class MainBoard {
         os.on();
 
         try {
-            Scanner scanner = new Scanner(new File("exe/test.exw"));
-            StringBuilder builder = new StringBuilder();
-            while (scanner.hasNextLine())
-                builder.append(scanner.nextLine()).append("\r\n");
-            disk.saveFile(builder.toString());
-            disk.saveFile(builder.toString());
-            scanner = new Scanner(new File("exe/test2.exw"));
+            Scanner scanner;
+            StringBuilder builder;
+            scanner = new Scanner(new File("exe/test2.awx"));
             builder = new StringBuilder();
             while (scanner.hasNextLine())
                 builder.append(scanner.nextLine()).append("\r\n");
-            disk.saveFile(builder.toString());
-            Loader.load(0);
-			Loader.load(1);
-			Loader.load(2);
-        } catch (FileNotFoundException e) {
+            CompilerAW compilerAW = new CompilerAW(builder.toString());
+            compilerAW.initialize("test2");
+            compilerAW.parse();
+        } catch (FileNotFoundException | DuplicateVariableException | IllegalFormatException | IllegalInstructionException e) {
             e.printStackTrace();
         }
     }

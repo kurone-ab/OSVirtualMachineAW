@@ -1,6 +1,7 @@
 allocate 3
 static c
-func f(){
+
+func f() {
     d = 3
     c = 1 + d
     return c
