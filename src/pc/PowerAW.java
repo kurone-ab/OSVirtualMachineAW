@@ -1,14 +1,9 @@
 package pc;
 
-import pc.mainboard.MainBoard;
-
-import java.util.Arrays;
-import java.util.Vector;
-
 public class PowerAW {
     public static void main(String[] args) {
-		MainBoard mainBoard = new MainBoard();
-		mainBoard.on();
+//		MainBoard mainBoard = new MainBoard();
+//		mainBoard.on();
 //        int i = 0;
 //        int[] array = new int[5];
 //        Vector<Integer> vector = new Vector<>();

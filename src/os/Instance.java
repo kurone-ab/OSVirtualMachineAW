@@ -1,11 +1,9 @@
 package os;
 
-import java.util.Vector;
-
 public class Instance {
-	public int[] member;
+	public int[] instance_variables;
 
 	public Instance(int size) {
-		this.member = new int[size];
+		this.instance_variables = new int[size];
 	}
 }

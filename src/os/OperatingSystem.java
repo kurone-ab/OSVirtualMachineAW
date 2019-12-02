@@ -1,14 +1,12 @@
 package os;
 
-import global.StackOverFlowExceptionAW;
 import pc.io.IODevice;
-import pc.mainboard.MainBoard;
 
 public class OperatingSystem {
-	static final long TIME_SLICE = 200000/*15000000-15ms*/;
+	static final long TIME_SLICE = 15000000/*15000000-15ms*/;
 	static ProcessManagerAW processManagerAW;
 	static MemoryManagerAW memoryManagerAW;
-	static FileManagerAW fileManagerAW;
+	public static FileManagerAW fileManagerAW;
 	static DeviceManagerAW deviceManagerAW;
 	static InterruptServiceRoutine isr;
 

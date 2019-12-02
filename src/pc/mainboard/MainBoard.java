@@ -38,10 +38,15 @@ public class MainBoard {
             builder = new StringBuilder();
             while (scanner.hasNextLine())
                 builder.append(scanner.nextLine()).append("\r\n");
-            CompilerAW compilerAW = new CompilerAW(builder.toString());
-            compilerAW.initialize("test2");
-            compilerAW.parse();
-        } catch (FileNotFoundException | DuplicateVariableException | IllegalFormatException | IllegalInstructionException e) {
+            OperatingSystem.fileManagerAW.loadFile("exe/test2.awx", builder.toString());
+            scanner = new Scanner(new File("exe/test3.awx"));
+            builder = new StringBuilder();
+            while (scanner.hasNextLine())
+                builder.append(scanner.nextLine()).append("\r\n");
+            OperatingSystem.fileManagerAW.loadFile("exe/test3.awx", builder.toString());
+            Loader.load("exe/test2.awx");
+            Loader.load("exe/test2.awx");
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }

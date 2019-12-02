@@ -6,13 +6,14 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.Vector;
 
 public class ProcessAW {
-	int pid;
+	int pid, main;
 	public int[] code, data;
 	public ActivationRecord[] stack;
 	public Vector<Instance> heap;
 
-	public ProcessAW(int pid, int[] code, int[] data, int size) {
+	public ProcessAW(int pid, int[] code, int[] data, int size, int main) {
 		this.pid = pid;
+		this.main = main;
 		this.code = code;
 		this.data = data;
 		this.stack = new ActivationRecord[size];

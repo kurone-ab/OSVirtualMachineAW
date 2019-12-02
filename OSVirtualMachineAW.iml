@@ -10,4 +10,7 @@
     <orderEntry type="library" name="annotations-17.0.0" level="project" />
     <orderEntry type="library" name="commons-lang3-3.9" level="project" />
   </component>
+  <component name="PyDocumentationSettings">
+    <option name="renderExternalDocumentation" value="true" />
+  </component>
 </module>

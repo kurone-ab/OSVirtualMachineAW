@@ -1,8 +1,5 @@
 package pc.mainboard.cpu;
 
-import global.StackOverFlowExceptionAW;
-import org.jetbrains.annotations.Contract;
-
 public class CentralProcessingUnit {
 	static final ArithmeticLogicUnit alu = new ArithmeticLogicUnit();
 	private static final CentralProcessingUnit cpu = new CentralProcessingUnit();
@@ -15,15 +12,14 @@ public class CentralProcessingUnit {
 		return cpu;
 	}
 
-	public void clock() throws StackOverFlowExceptionAW {
+	public void clock() {
 		cu.fetch();
 		cu.decode();
 		cu.execute();
 	}
 
 	public enum Instruction {
-		LDA, LDPI, LDNI,
-		ASN, HDS, STP, STA, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, FNC, RTN, RTNV, NEW, HLT
+		LDA, LDPI, LDNI, STA, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, FNC, RTN, RTNV, NEW, HLT
 		/* load address
 		 * load positive integer value
 		 * load negative integer value

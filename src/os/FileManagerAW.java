@@ -8,18 +8,13 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 public class FileManagerAW {
-	private HashMap<String, Integer> fileMap;
+	private HashMap<String, Integer> fileMap = new HashMap<>();
 	public String getFile(String filename){
-		Scanner scanner = null;
-		try {
-			scanner = new Scanner(new File("exe/test3.awx"));
-			StringBuilder builder = new StringBuilder();
-			while (scanner.hasNextLine())
-				builder.append(scanner.nextLine()).append("\r\n");
-			return builder.toString();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return MainBoard.disk.getFile(this.fileMap.get(filename));
+	}
+
+	public void loadFile(String filename, String content){
+		int index = MainBoard.disk.saveFile(content);
+		this.fileMap.put(filename, index);
 	}
 }

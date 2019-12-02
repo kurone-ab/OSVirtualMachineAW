@@ -1,22 +1,29 @@
 package os;
 
 
+import global.DuplicateVariableException;
+import global.IllegalFormatException;
+import global.IllegalInstructionException;
 import pc.mainboard.MainBoard;
 
-public class Loader {
+import java.security.SecureRandom;
 
-	public synchronized static void load(int index){
-//		System.out.println("process load");
-//		CompilerAW compilerAW = new CompilerAW(MainBoard.disk.getFile(index));
-//		compilerAW.initialize();
-//		compilerAW.parse();
-//
-//		ProcessAW processAW = new ProcessAW();
-//		processAW.data = CompilerAW.parseData();
-//		processAW.code = CompilerAW.parseCode();
-//		processAW.stack = new int[CompilerAW.stackSize()];
-//		processAW.heap = new int[10];
-//
-//		OperatingSystem.memoryManagerAW.load(processAW);
+public class Loader {
+	private static final SecureRandom random = new SecureRandom();
+
+	public synchronized static void load(String filename){
+		random.setSeed(System.currentTimeMillis());
+		try {
+			CompilerAW compilerAW = new CompilerAW(OperatingSystem.fileManagerAW.getFile(filename));
+			compilerAW.initialize(filename);
+			compilerAW.parse();
+			ProcessAW processAW = new ProcessAW(random.nextInt(((int) (Math.random() * 1000))),
+					compilerAW.convertCode(), compilerAW.convertData(), compilerAW.stack(),
+					compilerAW.functions.get(CompilerAW.main));
+			OperatingSystem.memoryManagerAW.load(processAW);
+			System.out.println("process load");
+		} catch (IllegalInstructionException | IllegalFormatException | DuplicateVariableException e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -1,9 +1,9 @@
-allocate 3
-import test3
+allocate 10
+import exe/test3.awx
 static a = 10
 
 func f(a) {
-    use test3 as t3
+    use exe/test3.awx as t3
     b = t3.f()
     a = a + b
     return
@@ -11,7 +11,7 @@ func f(a) {
 
 func main() {
     f(a)
-    return
+    exit
 }
 
 func c() {

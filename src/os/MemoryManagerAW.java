@@ -15,10 +15,10 @@ class MemoryManagerAW {
 	}
 
 	synchronized void load(ProcessAW processAW) {
+		System.out.println(processAW.pid);
 		int bound = MainBoard.ram.memory.length;
 		for (int i = 0; i < bound; i++) {
 			if (MainBoard.ram.memory[i] == null) {
-				OperatingSystem.processManagerAW.setProcessID(processAW);
 				this.memoryIndexTable.put(processAW.pid, i);
 				MainBoard.ram.memory[i] = processAW;
 				OperatingSystem.processManagerAW.newProcess(i, processAW);
