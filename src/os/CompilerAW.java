@@ -18,7 +18,7 @@ public class CompilerAW {
 	static final String main = "main";
 	private static final String allocate = "allocate", staticData = "static", assignment = "assn",
 			imports = "import", function = "func", use = "use", as = "as", annotation = "/--", returns = "return",
-			ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==";
+			ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==", self = "self";
 	private static final Pattern number_pattern = Pattern.compile("[0-9\\-]+");
 	private static final Pattern alpha_pattern = Pattern.compile("[a-zA-Z]+");
 	private static final Pattern fnc_pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*\\.?)+\\([a-zA-Z0-9_, ]*\\)");
@@ -26,27 +26,33 @@ public class CompilerAW {
 	private static final Pattern var_pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*\\.?)+");
 	private static final Pattern parameter_pattern = Pattern.compile("\\([a-zA-Z\\-0-9.,_ ]+\\)");
 	private static final Pattern parameter_element_pattern = Pattern.compile("[a-zA-Z\\-0-9._]+");
+	private static final Pattern main_pattern = Pattern.compile("main\\(\\)");
 	private static int heapAddress, dataAddress;
 	private static HashMap<String, Integer> class_variables;
 	private static HashMap<String, CompilerAW> class_instances, importModules;
-	private static ArrayList<Integer> code, data;
 	HashMap<String, Integer> functions;
+	private static ArrayList<Integer> code, data;
 	private HashMap<String, Integer> instance_variables;
 	private Scanner scanner;
 	private HashMap<String, Integer> local_size;
 	private HashMap<String, CompilerAW> instance_instances;
 	private ArrayList<String> wait_until_use;
 	private int size, instanceAddress;
+	private boolean isMain;
+	private String instruction_lines;
 
 
-	public CompilerAW(String sentence) {
-		this.scanner = new Scanner(sentence);
+	public CompilerAW(String instruction_lines) {
+		this.instruction_lines = instruction_lines;
+		this.scanner = new Scanner(instruction_lines);
 		this.instance_instances = new HashMap<>();
 		this.instance_variables = new HashMap<>();
+		this.instance_variables.put(self, heapAddress++);
 		this.local_size = new HashMap<>();
 		this.functions = new HashMap<>();
 		this.wait_until_use = new ArrayList<>();
 		this.size = this.instanceAddress = 0;
+		this.isMain = false;
 	}
 
 	public void initialize(String filename) {
@@ -57,6 +63,7 @@ public class CompilerAW {
 		code = new ArrayList<>();
 		data = new ArrayList<>();
 		heapAddress = dataAddress = 0;
+		this.isMain = main_pattern.matcher(this.instruction_lines).find();
 	}
 
 	public void parse() throws IllegalInstructionException, IllegalFormatException, DuplicateVariableException {// TODO: 2019-11-28 main의 주소를 pc로 세팅
@@ -107,19 +114,18 @@ public class CompilerAW {
 					break;
 				case assignment:
 					StringBuilder builder = new StringBuilder();
-					while (tokenizer.hasMoreTokens()) builder.append(tokenizer.nextToken());
+					String s = tokenizer.nextToken();
+					builder.append(s).append(" ");
+					while (tokenizer.hasMoreTokens()) {
+						String token = tokenizer.nextToken();
+						builder.append(token).append(" ");
+					}
+					this.instance_variables.putIfAbsent(s, this.instanceAddress++);
 					this.wait_until_use.add(builder.toString());
 					break;
 				case use://this is not static
 					CompilerAW compiler = importModules.get(tokenizer.nextToken());
-					if (compiler != null)
-						if (tokenizer.nextToken().equals(as)) {
-							String instance = tokenizer.nextToken();
-							if (class_instances.containsKey(instance) || this.instance_instances.containsKey(instance))
-								throw new DuplicateVariableException();
-							this.useCommand(this.instance_variables, this.instance_instances, instance, compiler);
-						} else throw new IllegalFormatException();
-					else throw new IllegalFormatException();
+					this.useCommand(tokenizer, compiler, this.instance_variables, this.instance_instances);
 					break;
 				case function:
 					String fn_name;
@@ -135,38 +141,31 @@ public class CompilerAW {
 						fn_name = matcher.group().replace("(", "");
 						this.functions.put(fn_name, code.size());
 						if (fn_name.equals(main)) {
-							instruction = CentralProcessingUnit.Instruction.NEW.ordinal() << instruction_bit;
-							instruction += this.instance_variables.size();
-							code.add(instruction);
+							this.useCommand(this.instance_variables, this.instance_instances, self, this);
+							heapAddress++;
 							position = code.size();
 						}
 						line = this.scanner.nextLine();
 						matcher = parameter_pattern.matcher(next);
 						if (matcher.find()) {
-							String s = matcher.group();
-							Matcher m = alpha_pattern.matcher(s);
+							String st = matcher.group();
+							Matcher m = alpha_pattern.matcher(st);
 							while (m.find()) {
 								local_variables.put(m.group(), stackAddress++);
 							}
 						}
 						String statement = null;
-						int startLine = 0, endLine;
+						int startLine = 0;
 						ArrayList<Integer> condition = new ArrayList<>();
 						while (!line.contains(returns) && !line.contains(exit)) {
 							tokenizer = new StringTokenizer(line);
 							String store_target = tokenizer.nextToken();// TODO: 2019-12-01 first check if or while
 							if (store_target.equals("}")) {
-								endLine = code.size();
 								if (statement == null) throw new IllegalFormatException();
 								instruction = CentralProcessingUnit.Instruction.JMP.ordinal() << instruction_bit;
-								if (statement.equals(ifs)) {
-									instruction += endLine;
-									code.add(startLine, instruction);
-								} else {
-									code.addAll(endLine, condition);
-									instruction += code.size();
-									code.add(instruction);
-								}
+								if (!statement.equals(ifs)) code.addAll(condition);
+								instruction += code.size() + 1;
+								code.add(startLine, instruction);
 							} else if (store_target.equals(use)) {
 								String module = tokenizer.nextToken();
 								compiler = importModules.get(module);
@@ -180,15 +179,16 @@ public class CompilerAW {
 								} else throw new IllegalFormatException();
 							} else if (store_target.equals(ifs)) {// TODO: 2019-11-28 complete if statement
 								statement = ifs;
-								startLine = code.size() + 1;
-								this.compileStatement(tokenizer, local_variables, local_instances, 2);
+								this.parseStatement(tokenizer, local_variables, local_instances);
+								startLine = code.size();
 							} else if (store_target.equals(whiles)) {// TODO: 2019-11-28 complete while statement
 								statement = whiles;
-								startLine = code.size() + 1;
-								this.compileStatement(tokenizer, local_variables, local_instances, 0);
-								for (int i = startLine - 1; i < code.size(); i++) {
+								startLine = code.size();
+								this.parseStatement(tokenizer, local_variables, local_instances);
+								for (int i = startLine; i < code.size(); i++) {
 									condition.add(code.get(i));
 								}
+								startLine = code.size();
 							} else if (var_pattern.matcher(store_target).matches()) {
 								if (!class_variables.containsKey(store_target) && !this.instance_variables.containsKey(store_target))
 									local_variables.putIfAbsent(store_target, stackAddress++);
@@ -202,41 +202,39 @@ public class CompilerAW {
 											String operand = tokenizer.nextToken();
 											switch (operator) {
 												case "+":
-													this.computeOperand(CentralProcessingUnit.Instruction.ADD.ordinal(), CentralProcessingUnit.Instruction.SUB.ordinal(), operand, local_variables, local_instances);
+													this.computeOperand(CentralProcessingUnit.Instruction.ADD.ordinal(), CentralProcessingUnit.Instruction.SUB.ordinal(), operand, local_variables, local_instances, this);
 													break;
 												case "-":
-													this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), operand, local_variables, local_instances);
+													this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), operand, local_variables, local_instances, this);
 													break;
 												case "*":
-													this.computeOperand(CentralProcessingUnit.Instruction.MUL.ordinal(), operand, local_variables, local_instances);
+													this.computeOperand(CentralProcessingUnit.Instruction.MUL.ordinal(), operand, local_variables, local_instances, this);
 													break;
 												case "/":
-													this.computeOperand(CentralProcessingUnit.Instruction.DIV.ordinal(), operand, local_variables, local_instances);
+													this.computeOperand(CentralProcessingUnit.Instruction.DIV.ordinal(), operand, local_variables, local_instances, this);
 													break;
 												case "&":
-													this.computeOperand(CentralProcessingUnit.Instruction.AND.ordinal(), operand, local_variables, local_instances);
+													this.computeOperand(CentralProcessingUnit.Instruction.AND.ordinal(), operand, local_variables, local_instances, this);
 													break;
 												case "|":
-													this.computeOperand(CentralProcessingUnit.Instruction.OR.ordinal(), operand, local_variables, local_instances);
+													this.computeOperand(CentralProcessingUnit.Instruction.OR.ordinal(), operand, local_variables, local_instances, this);
 													break;
 												case "~":
-													this.computeOperand(CentralProcessingUnit.Instruction.NOT.ordinal(), operand, local_variables, local_instances);
+													this.computeOperand(CentralProcessingUnit.Instruction.NOT.ordinal(), operand, local_variables, local_instances, this);
 													break;
 												case "^":
-													this.computeOperand(CentralProcessingUnit.Instruction.XOR.ordinal(), operand, local_variables, local_instances);
+													this.computeOperand(CentralProcessingUnit.Instruction.XOR.ordinal(), operand, local_variables, local_instances, this);
 													break;
 												default:
 													throw new IllegalFormatException();
 											}
 										}
-										this.commandWithVariable(CentralProcessingUnit.Instruction.STA.ordinal() << instruction_bit, store_target, local_variables, local_instances);
+										this.commandWithVariable(CentralProcessingUnit.Instruction.STA.ordinal() << instruction_bit, store_target, local_variables, local_instances, this);
 									} else throw new IllegalFormatException();
-								} else {// TODO: 2019-12-03 assignment only
-
 								}
 							} else if (fnc_pattern.matcher(store_target).matches()) {
 								this.functionCall(store_target, local_variables, local_instances);
-							} else throw new IllegalFormatException();
+							} else if (!store_target.equals(annotation)) throw new IllegalFormatException();
 							line = this.scanner.nextLine();
 						}
 						tokenizer = new StringTokenizer(line);
@@ -244,13 +242,11 @@ public class CompilerAW {
 						switch (command) {
 							case returns:
 								if (tokenizer.hasMoreTokens()) {
-									instruction = CentralProcessingUnit.Instruction.RTNV.ordinal();
 									String load_target = tokenizer.nextToken();
-									this.computeOperand(instruction, load_target, local_variables, local_instances);
-								} else {
-									instruction = CentralProcessingUnit.Instruction.RTN.ordinal() << instruction_bit;
-									code.add(instruction);
+									this.loadClassify(load_target, local_variables, local_instances);
 								}
+								instruction = CentralProcessingUnit.Instruction.RTN.ordinal() << instruction_bit;
+								code.add(instruction);
 								scanner.nextLine();
 								break;
 							case exit:
@@ -267,6 +263,7 @@ public class CompilerAW {
 						instruction += this.local_size.get(fn_name);
 						code.add(position, instruction);
 					}
+					System.out.println(local_variables);
 					break;
 				case annotation:
 					break;
@@ -294,7 +291,7 @@ public class CompilerAW {
 		return array;
 	}
 
-	private void computeOperand(int operation, int alternative, String operand, HashMap<String, Integer> variables, HashMap<String, CompilerAW> instances) throws IllegalFormatException {
+	private void computeOperand(int operation, int alternative, String operand, HashMap<String, Integer> variables, HashMap<String, CompilerAW> instances, CompilerAW compilerAW) throws IllegalFormatException {
 		int instruction = operation << instruction_bit;
 		if (number_pattern.matcher(operand).matches()) {
 			int x = Integer.parseInt(operand);
@@ -309,10 +306,10 @@ public class CompilerAW {
 				code.add(instruction);
 			}
 		} else if (var_pattern.matcher(operand).matches())
-			this.commandWithVariable(instruction, operand, variables, instances);
+			this.commandWithVariable(instruction, operand, variables, instances, compilerAW);
 	}
 
-	private void computeOperand(int operation, String operand, HashMap<String, Integer> variables, HashMap<String, CompilerAW> instances) throws IllegalFormatException {
+	private void computeOperand(int operation, String operand, HashMap<String, Integer> variables, HashMap<String, CompilerAW> instances, CompilerAW compilerAW) throws IllegalFormatException {
 		int instruction = operation << instruction_bit;
 		if (number_pattern.matcher(operand).matches()) {
 			int x = Integer.parseInt(operand);
@@ -322,25 +319,22 @@ public class CompilerAW {
 				code.add(instruction);
 			} else throw new IllegalFormatException();
 		} else if (var_pattern.matcher(operand).matches())
-			this.commandWithVariable(instruction, operand, variables, instances);
+			this.commandWithVariable(instruction, operand, variables, instances, compilerAW);
 	}
 
 	private void commandWithVariable(int instruction, String variable, HashMap<String, Integer> variables,
-	                                 HashMap<String, CompilerAW> instances) throws IllegalFormatException {
+									 HashMap<String, CompilerAW> instances, CompilerAW target_compiler) throws IllegalFormatException {
 		StringTokenizer tokenizer = new StringTokenizer(variable, ".");
 		int heap = -1;
 		CompilerAW compilerAW = this;
-		int segment = 0;
 		while (tokenizer.countTokens() > 1) {
 			String instance = tokenizer.nextToken();
 			if (instances.containsKey(instance) && variables != this.instance_variables && variables != class_variables) {
 				compilerAW = instances.get(instance);
 				heap = variables.get(instance);
-				segment = (stackSegment << segment_bit);
 			} else if (compilerAW.instance_instances.containsKey(instance)) {
 				compilerAW = compilerAW.instance_instances.get(instance);
 				heap = compilerAW.instance_variables.get(instance);
-				segment = (heapSegment << segment_bit);
 			} else if (class_instances.containsKey(instance)) {
 				compilerAW = class_instances.get(instance);
 				heap = class_variables.get(instance);
@@ -349,13 +343,13 @@ public class CompilerAW {
 		String real_variable = tokenizer.nextToken();
 		if (heap == -1) {
 			int address;
-			if (variables.containsKey(real_variable) && variables != this.instance_variables && variables != class_variables) {
+			if (variables.containsKey(real_variable) && variables != target_compiler.instance_variables && variables != class_variables) {
 				instruction += (stackSegment << segment_bit);
 				address = variables.get(real_variable);
-			} else if (this.instance_variables.containsKey(real_variable)) {
-				address = this.instance_variables.get(real_variable);
+			} else if (target_compiler.instance_variables.containsKey(real_variable)) {
+				address = target_compiler.instance_variables.get(real_variable);
 				instruction += (heapSegment << segment_bit);
-				instruction += (heapAddress - 1) << correction_bit;
+				instruction += target_compiler.instance_variables.get(self) << correction_bit;// TODO: 2019-12-04 how to do it..
 			} else if (class_variables.containsKey(real_variable)) {
 				address = class_variables.get(real_variable);
 			} else {
@@ -363,9 +357,12 @@ public class CompilerAW {
 			}
 			instruction += address;
 		} else {
-			instruction += segment;
-			instruction += (heap << correction_bit);
-			instruction += compilerAW.instance_variables.get(real_variable);
+			if (compilerAW.instance_variables.containsKey(real_variable)) {
+				instruction += heapSegment << segment_bit;
+				instruction += heap << correction_bit;
+				instruction += compilerAW.instance_variables.get(real_variable);
+			} else if (class_variables.containsKey(real_variable)) instruction += class_variables.get(real_variable);
+			else throw new IllegalFormatException();
 		}
 
 		code.add(instruction);
@@ -432,56 +429,59 @@ public class CompilerAW {
 		else throw new IllegalFormatException();
 	}
 
-	private void useCommand(HashMap<String, Integer> variables, HashMap<String, CompilerAW> instances, String instance, CompilerAW compiler) throws IllegalFormatException {
+	private void useCommand(HashMap<String, Integer> variables, HashMap<String, CompilerAW> instances, String instance, CompilerAW compiler) throws IllegalFormatException, DuplicateVariableException {
 		instances.put(instance, compiler);
-		if (var_pattern.matcher(instance).matches()) {
-			variables.put(instance, heapAddress++);
+//		compiler.instance_variables.put(self, heapAddress);
+		if (var_pattern.matcher(instance).matches()) {// TODO: 2019-12-04
+			if (!instance.equals(self)) variables.put(instance, heapAddress++);
 			int instruction = CentralProcessingUnit.Instruction.NEW.ordinal() << instruction_bit;
-			instruction += this.instance_variables.size();
+			instruction += compiler.instance_variables.size();
 			code.add(instruction);
-			for (String line : this.wait_until_use) {
+			for (String line : compiler.wait_until_use) {
 				StringTokenizer tokenizer = new StringTokenizer(line);
 				String store_target = tokenizer.nextToken();
 				if (var_pattern.matcher(store_target).matches()) {
+					if (class_variables.containsKey(store_target)) throw new DuplicateVariableException();
+					compiler.instance_variables.putIfAbsent(store_target, compiler.instanceAddress++);
 					if (tokenizer.hasMoreTokens()) {//assignment and initialize
 						String operator = tokenizer.nextToken();
 						if (operator.equals("=")) {
 							String value = tokenizer.nextToken();
-							this.loadClassify(value, variables, instances);
+							this.loadClassify(value, compiler.instance_variables, compiler.instance_instances);
 							while (tokenizer.hasMoreTokens()) {
 								operator = tokenizer.nextToken();
 								switch (operator) {
 									case "+":
-										this.computeOperand(CentralProcessingUnit.Instruction.ADD.ordinal(), CentralProcessingUnit.Instruction.SUB.ordinal(), tokenizer.nextToken(), this.instance_variables, this.instance_instances);
+										this.computeOperand(CentralProcessingUnit.Instruction.ADD.ordinal(), CentralProcessingUnit.Instruction.SUB.ordinal(), tokenizer.nextToken(), compiler.instance_variables, compiler.instance_instances, compiler);
 										break;
 									case "-":
-										this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), tokenizer.nextToken(), this.instance_variables, this.instance_instances);
+										this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), tokenizer.nextToken(), compiler.instance_variables, compiler.instance_instances, compiler);
 										break;
 									case "*":
-										this.computeOperand(CentralProcessingUnit.Instruction.MUL.ordinal(), tokenizer.nextToken(), this.instance_variables, this.instance_instances);
+										this.computeOperand(CentralProcessingUnit.Instruction.MUL.ordinal(), tokenizer.nextToken(), compiler.instance_variables, compiler.instance_instances, compiler);
 										break;
 									case "/":
-										this.computeOperand(CentralProcessingUnit.Instruction.DIV.ordinal(), tokenizer.nextToken(), this.instance_variables, this.instance_instances);
+										this.computeOperand(CentralProcessingUnit.Instruction.DIV.ordinal(), tokenizer.nextToken(), compiler.instance_variables, compiler.instance_instances, compiler);
 										break;
 									case "&":
-										this.computeOperand(CentralProcessingUnit.Instruction.AND.ordinal(), tokenizer.nextToken(), this.instance_variables, this.instance_instances);
+										this.computeOperand(CentralProcessingUnit.Instruction.AND.ordinal(), tokenizer.nextToken(), compiler.instance_variables, compiler.instance_instances, compiler);
 										break;
 									case "|":
-										this.computeOperand(CentralProcessingUnit.Instruction.OR.ordinal(), tokenizer.nextToken(), this.instance_variables, this.instance_instances);
+										this.computeOperand(CentralProcessingUnit.Instruction.OR.ordinal(), tokenizer.nextToken(), compiler.instance_variables, compiler.instance_instances, compiler);
 										break;
 									case "~":
-										this.computeOperand(CentralProcessingUnit.Instruction.NOT.ordinal(), tokenizer.nextToken(), this.instance_variables, this.instance_instances);
+										this.computeOperand(CentralProcessingUnit.Instruction.NOT.ordinal(), tokenizer.nextToken(), compiler.instance_variables, compiler.instance_instances, compiler);
 										break;
 									case "^":
-										this.computeOperand(CentralProcessingUnit.Instruction.XOR.ordinal(), tokenizer.nextToken(), this.instance_variables, this.instance_instances);
+										this.computeOperand(CentralProcessingUnit.Instruction.XOR.ordinal(), tokenizer.nextToken(), compiler.instance_variables, compiler.instance_instances, compiler);
 										break;
 									default:
 										throw new IllegalFormatException();
 								}
 							}
-							this.commandWithVariable(CentralProcessingUnit.Instruction.STA.ordinal() << instruction_bit, store_target, this.instance_variables, this.instance_instances);
+							this.commandWithVariable(CentralProcessingUnit.Instruction.STA.ordinal() << instruction_bit, store_target, compiler.instance_variables, compiler.instance_instances, compiler);
 						} else throw new IllegalFormatException();
-					} else this.instance_variables.putIfAbsent(store_target, this.instanceAddress++);//assignment only
+					}
 				}
 			}
 		} else throw new IllegalFormatException();
@@ -491,7 +491,7 @@ public class CompilerAW {
 		if (number_pattern.matcher(value).matches()) {
 			this.loadInteger(value);
 		} else if (var_pattern.matcher(value).matches()) {//this is variable
-			this.commandWithVariable(CentralProcessingUnit.Instruction.LDA.ordinal() << instruction_bit, value, variables, instances);
+			this.commandWithVariable(CentralProcessingUnit.Instruction.LDA.ordinal() << instruction_bit, value, variables, instances, this);
 		} else if (fnc_pattern.matcher(value).matches()) {//this is function call
 			this.functionCall(value, variables, instances);
 		} else throw new IllegalFormatException();
@@ -502,37 +502,35 @@ public class CompilerAW {
 			this.loadInteger(value);
 		} else if (var_pattern.matcher(value).matches()) {//this is variable
 			this.commandWithVariable(CentralProcessingUnit.Instruction.LDP.ordinal() << instruction_bit, value,
-					variables, instances);
-		} else if (fnc_pattern.matcher(value).matches()) {//this is function call
-			this.functionCall(value, variables, instances);
+					variables, instances, this);
 		} else throw new IllegalFormatException();
 	}
 
-	private void compileStatement(StringTokenizer tokenizer, HashMap<String, Integer> local_variables, HashMap<String
-			, CompilerAW> local_instances, int correction) throws IllegalFormatException {
+	private void parseStatement(StringTokenizer tokenizer, HashMap<String, Integer> local_variables, HashMap<String
+			, CompilerAW> local_instances) throws IllegalFormatException {
 		String operand1 = tokenizer.nextToken();
 		String operator = tokenizer.nextToken();
 		String operand2 = tokenizer.nextToken();
 		switch (operator) {
 			case equal:
 				this.loadClassify(operand1, local_variables, local_instances);
-				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), operand2, local_variables, local_instances);
+				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), operand2, local_variables, local_instances, this);
 				int instruction = CentralProcessingUnit.Instruction.JSZ.ordinal() << instruction_bit;
-				instruction += code.size() + correction;
+				instruction += code.size() + 2;
 				code.add(instruction);
 				break;
 			case big:
-				this.loadClassify(operand1, local_variables, local_instances);
-				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), operand2, local_variables, local_instances);
+				this.loadClassify(operand2, local_variables, local_instances);
+				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), operand1, local_variables, local_instances, this);
 				instruction = CentralProcessingUnit.Instruction.JSN.ordinal() << instruction_bit;
-				instruction += code.size() + correction;
+				instruction += code.size() + 2;
 				code.add(instruction);
 				break;
 			case small:
-				this.loadClassify(operand2, local_variables, local_instances);
-				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), operand1, local_variables, local_instances);
+				this.loadClassify(operand1, local_variables, local_instances);
+				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(), CentralProcessingUnit.Instruction.ADD.ordinal(), operand2, local_variables, local_instances, this);
 				instruction = CentralProcessingUnit.Instruction.JSN.ordinal() << instruction_bit;
-				instruction += code.size() + correction;
+				instruction += code.size() + 2;
 				code.add(instruction);
 				break;
 		}

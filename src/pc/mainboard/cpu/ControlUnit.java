@@ -90,9 +90,6 @@ class ControlUnit {
 			case RTN:
 				RTN();
 				break;
-			case RTNV:
-				RTNV();
-				break;
 			case NEW:
 				NEW();
 				break;
@@ -219,14 +216,6 @@ class ControlUnit {
 		Register.PC.data = activationRecord.returnPC;
 		mmu.eliminate_activation_record();
 		ARC.data--;
-	}
-
-	private void RTNV() {
-		MAR.data = IR.data & 0x00ffffff;
-		mmu.dataFetch();
-		AC.data = MBR.data;
-		this.RTN();
-		System.out.println("accumulator value: "+ AC.data);
 	}
 
 	private void HLT() {

@@ -1,8 +1,14 @@
 allocate 3
 static c
+assn n = 9
 
 func f() {
     d = 3
     c = 1 + d
     return c
+}
+
+func change() {
+    n = 3
+    return
 }
