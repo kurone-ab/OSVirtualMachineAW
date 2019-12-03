@@ -3,7 +3,7 @@ package os;
 import pc.io.IODevice;
 
 public class OperatingSystem {
-	static final long TIME_SLICE = 15000000/*15000000-15ms*/;
+	static final long TIME_SLICE = 150000/*15000000-15ms*/;
 	static ProcessManagerAW processManagerAW;
 	static MemoryManagerAW memoryManagerAW;
 	public static FileManagerAW fileManagerAW;

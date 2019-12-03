@@ -1,7 +1,7 @@
 package pc.mainboard.cpu;
 
 public enum Register {
-	PC, SP, MAR, MBR, IR, AC, STATUS, ITR, INR, ARC;
+	PC, SP, MAR, MBR, IR, AC, STATUS, ITR, INR, ARC, HSR;
 	public int data;
 	/*itr is store interrupt id*/
 	/*status register data
@@ -21,5 +21,6 @@ public enum Register {
 	* interrupt id register
 	* instance register
 	* current activation register
+	* heap segment register
 	*/
 }

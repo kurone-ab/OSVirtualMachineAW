@@ -2,10 +2,11 @@ package os;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.jetbrains.annotations.NotNull;
 
-public class ProcessControlBlock {
+public class ProcessControlBlock implements Comparable<ProcessControlBlock> {
 	int pid, priority;
-	int[] registers;
+	int[] context;
 	State ps;
 
 	@Override
@@ -26,5 +27,10 @@ public class ProcessControlBlock {
 		return new HashCodeBuilder(17, 37)
 				.append(pid)
 				.toHashCode();
+	}
+
+	@Override
+	public int compareTo(@NotNull ProcessControlBlock o) {
+		return this.priority > o.priority ? -1 : 1;
 	}
 }

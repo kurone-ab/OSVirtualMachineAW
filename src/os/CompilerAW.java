@@ -15,23 +15,23 @@ import java.util.regex.Pattern;
 public class CompilerAW {
 	public static final int instruction_bit = 24, segment_bit = 20, correction_bit = 12, parameter_bit = 16,
 			heapSegment = 2, stackSegment = 1, dataSegment = 0, constant = 4;
-	public static final String allocate = "allocate", staticData = "static", main = "main", assignment = "assn",
+	static final String main = "main";
+	private static final String allocate = "allocate", staticData = "static", assignment = "assn",
 			imports = "import", function = "func", use = "use", as = "as", annotation = "/--", returns = "return",
 			ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==";
-	private static final Pattern number_pattern = Pattern.compile("[0-9]+");
+	private static final Pattern number_pattern = Pattern.compile("[0-9\\-]+");
 	private static final Pattern alpha_pattern = Pattern.compile("[a-zA-Z]+");
 	private static final Pattern fnc_pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*\\.?)+\\([a-zA-Z0-9_, ]*\\)");
 	private static final Pattern fn_name_pattern = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*\\(");
 	private static final Pattern var_pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*\\.?)+");
-	private static final Pattern parameter_pattern = Pattern.compile("\\([a-zA-Z0-9.,_ ]+\\)");
-	private static final Pattern parameter_element_pattern = Pattern.compile("[a-zA-Z0-9._]+");
+	private static final Pattern parameter_pattern = Pattern.compile("\\([a-zA-Z\\-0-9.,_ ]+\\)");
+	private static final Pattern parameter_element_pattern = Pattern.compile("[a-zA-Z\\-0-9._]+");
 	private static int heapAddress, dataAddress;
 	private static HashMap<String, Integer> class_variables;
 	private static HashMap<String, CompilerAW> class_instances, importModules;
 	private static ArrayList<Integer> code, data;
-	boolean isMain;
-	private HashMap<String, Integer> instance_variables;
 	HashMap<String, Integer> functions;
+	private HashMap<String, Integer> instance_variables;
 	private Scanner scanner;
 	private HashMap<String, Integer> local_size;
 	private HashMap<String, CompilerAW> instance_instances;
@@ -106,7 +106,9 @@ public class CompilerAW {
 					} else throw new IllegalInstructionException();
 					break;
 				case assignment:
-					this.wait_until_use.add(line);
+					StringBuilder builder = new StringBuilder();
+					while (tokenizer.hasMoreTokens()) builder.append(tokenizer.nextToken());
+					this.wait_until_use.add(builder.toString());
 					break;
 				case use://this is not static
 					CompilerAW compiler = importModules.get(tokenizer.nextToken());
@@ -133,7 +135,6 @@ public class CompilerAW {
 						fn_name = matcher.group().replace("(", "");
 						this.functions.put(fn_name, code.size());
 						if (fn_name.equals(main)) {
-							this.isMain = true;
 							instruction = CentralProcessingUnit.Instruction.NEW.ordinal() << instruction_bit;
 							instruction += this.instance_variables.size();
 							code.add(instruction);
@@ -189,7 +190,8 @@ public class CompilerAW {
 									condition.add(code.get(i));
 								}
 							} else if (var_pattern.matcher(store_target).matches()) {
-								local_variables.putIfAbsent(store_target, stackAddress++);
+								if (!class_variables.containsKey(store_target) && !this.instance_variables.containsKey(store_target))
+									local_variables.putIfAbsent(store_target, stackAddress++);
 								if (tokenizer.hasMoreTokens()) {//assignment and initialize
 									String operator = tokenizer.nextToken();
 									if (operator.equals("=")) {
@@ -229,6 +231,8 @@ public class CompilerAW {
 										}
 										this.commandWithVariable(CentralProcessingUnit.Instruction.STA.ordinal() << instruction_bit, store_target, local_variables, local_instances);
 									} else throw new IllegalFormatException();
+								} else {// TODO: 2019-12-03 assignment only
+
 								}
 							} else if (fnc_pattern.matcher(store_target).matches()) {
 								this.functionCall(store_target, local_variables, local_instances);
@@ -371,12 +375,10 @@ public class CompilerAW {
 		int x = Integer.parseInt(value);
 		if (x < 0) {
 			int instruction = CentralProcessingUnit.Instruction.LDNI.ordinal() << instruction_bit;
-			instruction += constant << segment_bit;
 			instruction += -x;
 			code.add(instruction);
 		} else {
 			int instruction = CentralProcessingUnit.Instruction.LDPI.ordinal() << instruction_bit;
-			instruction += constant << segment_bit;
 			instruction += x;
 			code.add(instruction);
 		}
@@ -395,7 +397,7 @@ public class CompilerAW {
 			matcher = parameter_element_pattern.matcher(parameters);
 			while (matcher.find()) {
 				String parameter = matcher.group();
-				this.loadClassify(parameter, variables, instances);
+				this.loadParameter(parameter, variables, instances);
 				int instruction = CentralProcessingUnit.Instruction.STA.ordinal() << instruction_bit;
 				instruction += (stackSegment << segment_bit) + i++;
 				code.add(instruction);
@@ -490,6 +492,17 @@ public class CompilerAW {
 			this.loadInteger(value);
 		} else if (var_pattern.matcher(value).matches()) {//this is variable
 			this.commandWithVariable(CentralProcessingUnit.Instruction.LDA.ordinal() << instruction_bit, value, variables, instances);
+		} else if (fnc_pattern.matcher(value).matches()) {//this is function call
+			this.functionCall(value, variables, instances);
+		} else throw new IllegalFormatException();
+	}
+
+	private void loadParameter(String value, HashMap<String, Integer> variables, HashMap<String, CompilerAW> instances) throws IllegalFormatException {
+		if (number_pattern.matcher(value).matches()) {
+			this.loadInteger(value);
+		} else if (var_pattern.matcher(value).matches()) {//this is variable
+			this.commandWithVariable(CentralProcessingUnit.Instruction.LDP.ordinal() << instruction_bit, value,
+					variables, instances);
 		} else if (fnc_pattern.matcher(value).matches()) {//this is function call
 			this.functionCall(value, variables, instances);
 		} else throw new IllegalFormatException();

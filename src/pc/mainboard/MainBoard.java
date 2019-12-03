@@ -1,9 +1,5 @@
 package pc.mainboard;
 
-import global.DuplicateVariableException;
-import global.IllegalFormatException;
-import global.IllegalInstructionException;
-import os.CompilerAW;
 import os.Loader;
 import os.OperatingSystem;
 import pc.PersistenceStorage;
@@ -17,6 +13,7 @@ import java.util.Scanner;
 
 public class MainBoard {
     public static RandomAccessMemory ram;
+    public static MemoryManagementUnit mmu;
     public static PersistenceStorage disk;
     public static Mouse mouse;
     public static KeyBoard keyBoard;
@@ -24,6 +21,8 @@ public class MainBoard {
 
     public void on() {
         ram = new RandomAccessMemory();
+        mmu = new MemoryManagementUnit();
+        mmu.connect(ram);
         disk = new PersistenceStorage();
         mouse = new Mouse();
         keyBoard = new KeyBoard();
@@ -45,7 +44,9 @@ public class MainBoard {
                 builder.append(scanner.nextLine()).append("\r\n");
             OperatingSystem.fileManagerAW.loadFile("exe/test3.awx", builder.toString());
             Loader.load("exe/test2.awx");
-            Loader.load("exe/test2.awx");
+//            Loader.load("exe/test2.awx");
+//            Loader.load("exe/test2.awx");
+//            Loader.load("exe/test2.awx");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

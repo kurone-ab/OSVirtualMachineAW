@@ -19,8 +19,9 @@ public class CentralProcessingUnit {
 	}
 
 	public enum Instruction {
-		LDA, LDPI, LDNI, STA, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, FNC, RTN, RTNV, NEW, HLT
+		 LDA, LDP, LDPI, LDNI, STA, ADD, SUB, MUL, DIV, AND, OR, NOT, XOR, JMP, JSZ, JSN, ITR, FNC, RTN, RTNV, NEW, HLT
 		/* load address
+		 * load parameter
 		 * load positive integer value
 		 * load negative integer value
 		 * heap data store

@@ -1,27 +1,24 @@
 package os;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.jetbrains.annotations.NotNull;
 import pc.mainboard.MainBoard;
 import pc.mainboard.cpu.Register;
 
-import java.util.Hashtable;
+import java.util.EmptyStackException;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
+import java.util.function.Consumer;
 
 public class ProcessManagerAW {
-	private Hashtable<Integer, ProcessControlBlock> pcbs = new Hashtable<>();
 	private SchedulingQueue ready = new SchedulingQueue(), wait = new SchedulingQueue();
+	private ProcessControlBlock currentProcess;
 
 	synchronized void newProcess(int index, ProcessAW processAW) {
 		ProcessControlBlock pcb = new ProcessControlBlock();
 		pcb.pid = processAW.pid;
 		pcb.ps = State.NEW;
-		pcb.registers = new int[Register.values().length];
-		pcb.registers[Register.PC.ordinal()] = processAW.main;
-		pcb.registers[Register.SP.ordinal()] = index;
-		pcbs.put(processAW.pid, pcb);
+		pcb.context = new int[Register.values().length];
+		pcb.context[Register.PC.ordinal()] = processAW.main;
+		pcb.context[Register.SP.ordinal()] = index;
 		readyProcess(pcb);
 		if (ready.size() == 1) {
 			Thread run = new Thread(() -> this.run(pcb));
@@ -30,7 +27,7 @@ public class ProcessManagerAW {
 	}
 
 	private void readyProcess(ProcessControlBlock pcb) {
-		ready.add(new ElementAW(pcb.pid, pcb.priority));
+		ready.offer(pcb);
 		pcb.ps = State.READY;
 	}
 
@@ -39,35 +36,31 @@ public class ProcessManagerAW {
 		Thread isr;
 		Register[] registers = Register.values();//Initialize the register to the value of pcb before run.
 		for (int i = 0; i < registers.length; i++)
-			registers[i].data = pcb.registers[i];
-		ready.currentID = ready.next();
+			registers[i].data = pcb.context[i];
+		this.currentProcess = pcb;
 		long start = System.nanoTime();
-		while (!ready.isEmpty()) {
+		while (this.currentProcess != null) {
 //            try {
 //                Thread.sleep(500);
 //            } catch (InterruptedException e) {
 //                e.printStackTrace();
 //            }
-			System.out.println("current process id: " + ready.currentID);
+			System.out.println("current process id: " + this.currentProcess.pid);
 			MainBoard.cpu.clock();
 			if (interrupted()) {// TODO: 2019-11-12 make interrupt
-				int index = OperatingSystem.memoryManagerAW.processAddress(ready.currentID);
 				this.contextSwitch(State.WAIT);
-				ready.remove(index);
-				wait.add(index);
+				wait.add(ready.pull(this.currentProcess.pid));
 				isr = new Thread(() -> {
 					OperatingSystem.isr = InterruptVectorTable.ivt.get(Register.ITR.data);
-					OperatingSystem.isr.handle(ready.currentID);
+					OperatingSystem.isr.handle(this.currentProcess.pid);
 				});
 				isr.start();
 				start = System.nanoTime();
 				continue;
 			}
 			if (halt()) {
-				OperatingSystem.memoryManagerAW.unload(ready.currentID);
-				int pid = ready.currentID;
-				ready.remove(pid);
-				this.pcbs.remove(pid);
+				OperatingSystem.memoryManagerAW.unload(this.currentProcess.pid);
+				ready.remove(this.currentProcess);
 				this.contextSwitch(State.TERMINATE);
 				start = System.nanoTime();
 				continue;
@@ -82,30 +75,29 @@ public class ProcessManagerAW {
 	}
 
 	public synchronized void isrFinished(int pid) {
-		wait.currentID = pid;
-		int index = OperatingSystem.memoryManagerAW.processAddress(wait.currentID);
-		wait.remove(index);
-		ready.add(index);
+		ready.offer(wait.pull(pid));
 	}
 
 	private void contextSwitch(State state) {
-		if (ready.isEmpty()) return;
-		ProcessControlBlock pcb;
-
+		if (ready.isEmpty() && state == State.TERMINATE) {
+			this.currentProcess = null;
+			return;
+		}
 		Register[] registers = Register.values();
 		if (state != State.TERMINATE) {
 			//context save
-			pcb = pcbs.get(ready.currentID);
-			pcb.ps = state;
+			this.currentProcess.ps = state;
 			for (int i = 0; i < registers.length; i++)
-				pcb.registers[i] = registers[i].data;
+				this.currentProcess.context[i] = registers[i].data;
+			this.currentProcess.priority--;
+			ready.offer(this.currentProcess);
 		}
-		ready.next();
+		ready.nextProcess();
+		ready.increasePriority();
 		//context load
-		pcb = pcbs.get(ready.currentID);
-		pcb.ps = State.RUN;
+		this.currentProcess.ps = State.RUN;
 		for (int i = 0; i < registers.length; i++)
-			registers[i].data = pcb.registers[i];
+			registers[i].data = this.currentProcess.context[i];
 	}
 
 	private boolean interrupted() {
@@ -116,52 +108,29 @@ public class ProcessManagerAW {
 		return (Register.STATUS.data & 0x00001000) != 0;
 	}
 
-	private static class SchedulingQueue extends PriorityQueue<ElementAW> {
-		int currentID;
-		private
-
+	private class SchedulingQueue extends PriorityQueue<ProcessControlBlock> {
 		SchedulingQueue() {
 			super();
 		}
 
-		void next() {
-			if (!this.isEmpty())
-				this.currentID = this.poll().id;
-			else throw new NoSuchElementException();
-		}
-	}
-
-	private static class ElementAW implements Comparable<ElementAW> {
-		int id, priority;
-
-		ElementAW(int id, int priority) {
-			this.id = id;
-			this.priority = priority;
+		void nextProcess() {
+			if (!this.isEmpty()) {
+				currentProcess = this.poll();
+			}
 		}
 
-		@Override
-		public int compareTo(@NotNull ProcessManagerAW.ElementAW o) {
-			return this.priority > o.priority ? -1 : 1;
+		ProcessControlBlock pull(int pid) {
+			for (ProcessControlBlock processControlBlock : this) {
+				if (processControlBlock.pid == pid) {
+					this.remove(processControlBlock);
+					return processControlBlock;
+				}
+			}
+			throw new NoSuchElementException();
 		}
 
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-
-			if (!(o instanceof ElementAW)) return false;
-
-			ElementAW elementAW = (ElementAW) o;
-
-			return new EqualsBuilder()
-					.append(id, elementAW.id)
-					.isEquals();
-		}
-
-		@Override
-		public int hashCode() {
-			return new HashCodeBuilder(17, 37)
-					.append(id)
-					.toHashCode();
+		void increasePriority() {
+			this.forEach((i) -> i.priority++);
 		}
 	}
 }

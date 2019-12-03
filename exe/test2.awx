@@ -1,24 +1,14 @@
 allocate 10
 import exe/test3.awx
 static a = 10
+assn y = 5
 
-func f(a) {
+func f(x) {
     use exe/test3.awx as t3
     b = t3.f()
-    a = a + b
+    a = a + b + x
     return
 }
-
-func main() {
-    f(a)
-    exit
-}
-
-func c() {
-    irpt 1
-    return
-}
-
 func d() {
     if a == 5 {
         a = 1
@@ -28,3 +18,14 @@ func d() {
     }
     return
 }
+
+func main() {
+    d()
+    exit
+}
+
+func c() {
+    irpt 1
+    return
+}
+
