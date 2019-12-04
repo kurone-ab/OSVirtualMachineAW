@@ -44,7 +44,7 @@ public class MainBoard {
                 builder.append(scanner.nextLine()).append("\r\n");
             OperatingSystem.fileManagerAW.loadFile("exe/test3.awx", builder.toString());
             Loader.load("exe/test2.awx");
-//            Loader.load("exe/test2.awx");
+            Loader.load("exe/test2.awx");
 //            Loader.load("exe/test2.awx");
 //            Loader.load("exe/test2.awx");
         } catch (FileNotFoundException e) {
