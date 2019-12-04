@@ -2,7 +2,7 @@ package pc.mainboard.cpu;
 
 
 import os.ActivationRecord;
-import os.CompilerAW;
+import os.compiler.CompilerAW;
 import os.Instance;
 import pc.mainboard.MemoryManagementUnit;
 

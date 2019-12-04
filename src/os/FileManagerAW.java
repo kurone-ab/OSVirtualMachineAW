@@ -9,7 +9,7 @@ import java.util.Scanner;
 import java.util.Vector;
 
 public class FileManagerAW {
-	private static final String CSV = ".csv", AWX = ".awx", EXW = ".exw";
+	private static final String CSV = ".csv", AWX = ".awx", EXW = ".exw", TXT = ".txt";
 	private HashMap<String, Integer> fileMap = new HashMap<>();
 
 	public String getFile(String filename){
@@ -26,9 +26,9 @@ public class FileManagerAW {
 
 	}
 
-	public class FileAW{
+	public class FileAW<T>{
+		public int fid;
 		public String extension;
-		public String content;
-
+		public T content;
 	}
 }

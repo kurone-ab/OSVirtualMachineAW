@@ -1,8 +1,9 @@
-package os;
+package os.compiler;
 
 import global.DuplicateVariableException;
 import global.IllegalFormatException;
 import global.IllegalInstructionException;
+import os.OperatingSystem;
 import pc.mainboard.cpu.CentralProcessingUnit;
 
 import java.util.ArrayList;
@@ -15,10 +16,9 @@ import java.util.regex.Pattern;
 public class CompilerAW {
 	public static final int instruction_bit = 24, segment_bit = 20, correction_bit = 12, parameter_bit = 16,
 			heapSegment = 2, stackSegment = 1, dataSegment = 0, constant = 4, abnormal = 5;
-	static final String main = "main";
 	private static final String allocate = "allocate", staticData = "static", assignment = "assn",
-			imports = "import", function = "func", use = "use", as = "as", annotation = "/--", returns = "return",
-			ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==", self = "self";
+	imports = "import", function = "func", use = "use", as = "as", annotation = "/--", returns = "return",
+	ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==", self = "self";
 	private static final Pattern number_pattern = Pattern.compile("[0-9\\-]+");
 	private static final Pattern alpha_pattern = Pattern.compile("[a-zA-Z]+");
 	private static final Pattern fnc_pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*\\.?)+\\([a-zA-Z\\-0-9_, ]*\\)");
@@ -30,17 +30,19 @@ public class CompilerAW {
 	private static int heapAddress, dataAddress;
 	private static HashMap<String, Integer> class_variables;
 	private static HashMap<String, CompilerAW> class_instances, importModules;
-	private static ArrayList<Integer> code, data;
 	private HashMap<String, Integer> functions;
 	private HashMap<String, Integer> instance_variables;
 	private Scanner scanner;
 	private HashMap<String, Integer> local_size;
 	private HashMap<String, CompilerAW> instance_instances;
 	private ArrayList<String> wait_until_use;
-	private int size, instanceAddress;
+	private int instanceAddress;
 	private boolean isMain, previousMain, necessity;
 	private String instruction_lines;
-	private int new_main_line;
+	static final String main = "main";
+	static ArrayList<Integer> code, data;
+	int size;
+	int new_main_line;
 
 
 	public CompilerAW(String instruction_lines) {
