@@ -9,19 +9,23 @@ func d() {
     if t.n == 3 {
         a = 9
     }
-    while a < 10 {
+    a = 1
+    sum = 0
+    while a < 11 {
+        sum = sum + a
         a = a + 1
     }
-    return
+    return sum
 }
 
 func f(x) {
+    d()
     use exe/test3.awx as t3
     use exe/test3.awx as t2
     t2.change()
     /-- b = t3.f()
     /-- a = a + b + x + y
-    a = t2.n + y + t.n
+    a = t2.n + y + t3.n
     return
 }
 

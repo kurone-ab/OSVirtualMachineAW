@@ -19,7 +19,7 @@ public class Loader {
 			compilerAW.parse();
 			ProcessAW processAW = new ProcessAW(random.nextInt(((int) (Math.random() * 1000))),
 					compilerAW.convertCode(), compilerAW.convertData(), compilerAW.stack(),
-					compilerAW.functions.get(CompilerAW.main));
+					compilerAW.getStartLine());
 			OperatingSystem.memoryManagerAW.load(processAW);
 			System.out.println("process load");
 		} catch (IllegalInstructionException | IllegalFormatException | DuplicateVariableException e) {
