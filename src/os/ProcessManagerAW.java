@@ -49,7 +49,7 @@ public class ProcessManagerAW {
 			MainBoard.cpu.clock();
 			if (interrupted()) {// TODO: 2019-11-12 make interrupt
 				this.contextSwitch(State.WAIT);
-				wait.add(ready.pull(this.currentProcess.pid));
+				wait.add(this.currentProcess);
 				isr = new Thread(() -> {
 					OperatingSystem.isr = InterruptVectorTable.ivt.get(Register.ITR.data);
 					OperatingSystem.isr.handle(this.currentProcess.pid);

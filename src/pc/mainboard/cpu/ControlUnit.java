@@ -4,11 +4,7 @@ package pc.mainboard.cpu;
 import os.ActivationRecord;
 import os.CompilerAW;
 import os.Instance;
-import os.ProcessAW;
-import pc.mainboard.MainBoard;
 import pc.mainboard.MemoryManagementUnit;
-
-import java.util.Arrays;
 
 import static pc.mainboard.MainBoard.mmu;
 import static pc.mainboard.cpu.Register.*;
@@ -93,10 +89,17 @@ class ControlUnit {
 			case NEW:
 				NEW();
 				break;
+			case SHR:
+				SHR();
+				break;
 			case HLT:
 				HLT();
 				break;
 		}
+	}
+
+	private void SHR() {
+		HSR.data = IR.data & 0x00ffffff;
 	}
 
 	private void LDP() {
@@ -207,15 +210,19 @@ class ControlUnit {
 		int size = IR.data & 0x0000ffff;
 		int parameter_count = (IR.data >>> CompilerAW.parameter_bit) & 0x000000ff;
 		parameter_count *= 2;
-		ActivationRecord activationRecord = new ActivationRecord(Register.PC.data + parameter_count + 1, size);
+		int correction = (IR.data >>> CompilerAW.correction_bit) & 0x0000000f;
+		ActivationRecord activationRecord =
+				new ActivationRecord(HSR.data, Register.PC.data + parameter_count + 1 + correction
+				, size);
 		mmu.create_activation_record(activationRecord);
 	}
 
 	private void RTN() {
 		ActivationRecord activationRecord = mmu.current_activation_record();
+		HSR.data = activationRecord.returnHSR;
 		Register.PC.data = activationRecord.returnPC;
 		mmu.eliminate_activation_record();
-		ARC.data--;
+		CSR.data--;
 	}
 
 	private void HLT() {

@@ -18,7 +18,7 @@ public class RandomAccessMemory {
 
 	void stack_segment_fetch() {
 		ProcessAW processAW = memory[SP.data];
-		MBR.data = processAW.stack[ARC.data].local[MAR.data];
+		MBR.data = processAW.stack[CSR.data].local[MAR.data];
 	}
 
 	void heap_segment_fetch() {
@@ -35,7 +35,7 @@ public class RandomAccessMemory {
 
 	void stack_segment_store() {
 		ProcessAW processAW = memory[SP.data];
-		processAW.stack[ARC.data].local[MAR.data] = MBR.data;
+		processAW.stack[CSR.data].local[MAR.data] = MBR.data;
 	}
 
 

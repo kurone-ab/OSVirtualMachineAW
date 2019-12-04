@@ -5,7 +5,7 @@ import os.CompilerAW;
 import os.Instance;
 import pc.mainboard.cpu.Register;
 
-import static pc.mainboard.cpu.Register.ARC;
+import static pc.mainboard.cpu.Register.CSR;
 import static pc.mainboard.cpu.Register.SP;
 
 public class MemoryManagementUnit {
@@ -25,20 +25,26 @@ public class MemoryManagementUnit {
 				ram.stack_segment_fetch();
 				break;
 			case CompilerAW.heapSegment:
-				Register.HSR.data = correction;
 				ram.heap_segment_fetch();
 				break;
 			case CompilerAW.constant:
 				Register.MBR.data = address;
 				break;
+			case CompilerAW.abnormal:
+				int recover = Register.HSR.data;
+				Register.HSR.data = correction;
+				ram.heap_segment_fetch();
+				Register.HSR.data = recover;
+				break;
+
 		}
 	}
 
 	public void dataFetch(int mode) {
 		if (mode == ABNORMAL) {
-			ARC.data--;
+			CSR.data--;
 			this.dataFetch();
-			ARC.data++;
+			CSR.data++;
 		} else this.dataFetch();
 	}
 
@@ -54,9 +60,15 @@ public class MemoryManagementUnit {
 				ram.stack_segment_store();
 				break;
 			case CompilerAW.heapSegment:
-				Register.HSR.data = correction;
 				ram.heap_segment_store();
 				break;
+			case CompilerAW.abnormal:
+				int recover = Register.HSR.data;
+				Register.HSR.data = correction;
+				ram.heap_segment_store();
+				Register.HSR.data = recover;
+				break;
+
 		}
 	}
 
@@ -73,18 +85,18 @@ public class MemoryManagementUnit {
 		for (int i = 0; i < ram.memory.length; i++) {
 			if (stack[i] == null) {
 				stack[i] = activationRecord;
-				ARC.data = i;
+				CSR.data = i;
 				return;
 			}
 		}
 	}
 
 	public void eliminate_activation_record() {
-		ram.memory[SP.data].stack[ARC.data] = null;
+		ram.memory[SP.data].stack[CSR.data] = null;
 	}
 
 	public ActivationRecord current_activation_record() {
-		return ram.memory[SP.data].stack[ARC.data];
+		return ram.memory[SP.data].stack[CSR.data];
 	}
 
 	public void create_instance(Instance instance) {
