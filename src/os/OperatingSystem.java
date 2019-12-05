@@ -8,6 +8,7 @@ public class OperatingSystem {
 	static MemoryManagerAW memoryManagerAW;
 	public static FileManagerAW fileManagerAW;
 	static DeviceManagerAW deviceManagerAW;
+	static UXManagerAW uxManagerAW;
 	static InterruptServiceRoutine isr;
 
 	public void on(){
@@ -15,6 +16,8 @@ public class OperatingSystem {
 		memoryManagerAW = new MemoryManagerAW();
 		fileManagerAW = new FileManagerAW();
 		deviceManagerAW = new DeviceManagerAW();
+		uxManagerAW = new UXManagerAW();
+		uxManagerAW.on();
 	}
 
 	public void connect(IODevice device){

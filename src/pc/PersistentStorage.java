@@ -5,10 +5,10 @@ import os.FileManagerAW.FileAW;
 import java.util.Objects;
 import java.util.Vector;
 
-public class PersistenceStorage {
+public class PersistentStorage {
 	private Vector<FileAW> storage;
 
-	public PersistenceStorage() {
+	public PersistentStorage() {
 		this.storage = new Vector<>();
 	}
 

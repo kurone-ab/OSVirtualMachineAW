@@ -38,6 +38,7 @@ public class ProcessManagerAW {
 		for (int i = 0; i < registers.length; i++)
 			registers[i].data = pcb.context[i];
 		this.currentProcess = pcb;
+		OperatingSystem.uxManagerAW.updateRegisters();
 		long start = System.nanoTime();
 		while (this.currentProcess != null) {
 //            try {
@@ -47,6 +48,7 @@ public class ProcessManagerAW {
 //            }
 			System.out.println("current process id: " + this.currentProcess.pid);
 			MainBoard.cpu.clock();
+			OperatingSystem.uxManagerAW.updateRegisters();
 			if (interrupted()) {// TODO: 2019-11-12 make interrupt
 				this.contextSwitch(State.WAIT);
 				wait.add(this.currentProcess);

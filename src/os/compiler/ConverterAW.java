@@ -1,5 +1,7 @@
 package os.compiler;
 
+import os.ExecutableAW;
+
 public class ConverterAW<T extends CompilerAW> {
 
     public ExecutableAW convert(T compiler){
@@ -11,8 +13,4 @@ public class ConverterAW<T extends CompilerAW> {
         return executableAW;
     }
 
-    public static class ExecutableAW{
-        public int[] code, data;
-        public int size, startLine;
-    }
 }

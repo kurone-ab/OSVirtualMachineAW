@@ -12,7 +12,7 @@ import java.security.SecureRandom;
 public class Loader {
 	private static final SecureRandom random = new SecureRandom();
 
-	public synchronized static void load(ConverterAW.ExecutableAW executableAW){
+	public synchronized static void load(ExecutableAW executableAW){
 		random.setSeed(System.currentTimeMillis());
 		ProcessAW processAW = new ProcessAW(random.nextInt(((int) (Math.random() * 1000))),
 				executableAW.code, executableAW.data, executableAW.size,

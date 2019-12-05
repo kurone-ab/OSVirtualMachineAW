@@ -2,9 +2,7 @@ package pc.mainboard;
 
 import os.Loader;
 import os.OperatingSystem;
-import pc.PersistenceStorage;
-import pc.io.KeyBoard;
-import pc.io.Mouse;
+import pc.PersistentStorage;
 import pc.mainboard.cpu.CentralProcessingUnit;
 
 import java.io.File;
@@ -14,18 +12,14 @@ import java.util.Scanner;
 public class MainBoard {
     public static RandomAccessMemory ram;
     public static MemoryManagementUnit mmu;
-    public static PersistenceStorage disk;
-    public static Mouse mouse;
-    public static KeyBoard keyBoard;
+    public static PersistentStorage disk;
     public static CentralProcessingUnit cpu;
 
     public void on() {
         ram = new RandomAccessMemory();
         mmu = new MemoryManagementUnit();
         mmu.connect(ram);
-        disk = new PersistenceStorage();
-        mouse = new Mouse();
-        keyBoard = new KeyBoard();
+        disk = new PersistentStorage();
         cpu = CentralProcessingUnit.getInstance();
         OperatingSystem os = new OperatingSystem();
         os.on();
@@ -43,10 +37,6 @@ public class MainBoard {
             while (scanner.hasNextLine())
                 builder.append(scanner.nextLine()).append("\r\n");
             OperatingSystem.fileManagerAW.loadFile("exe/test3.awx", builder.toString());
-            Loader.load("exe/test2.awx");
-            Loader.load("exe/test2.awx");
-//            Loader.load("exe/test2.awx");
-//            Loader.load("exe/test2.awx");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
