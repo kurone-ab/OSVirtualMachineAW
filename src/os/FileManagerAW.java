@@ -7,20 +7,17 @@ import pc.mainboard.MainBoard;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Hashtable;
-import java.util.Scanner;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.*;
 
 public class FileManagerAW {
-    public static final String CSV = ".csv", AWX = ".awx", EXW = ".exw", TXT = ".txt";
+    public static final String CSV = "csv", AWX = "awx", EXW = "exw", TXT = "txt";
     private static DirectoryAW CDrive;
 
     public FileManagerAW() {
         CDrive = new DirectoryAW("C");
     }
 
-    public void on(){
+    public void on() {
         try {
             Scanner scanner;
             StringBuilder builder;
@@ -54,9 +51,14 @@ public class FileManagerAW {
             if (address != null) directoryAW = directoryAW.directoryAWS.get(address);
         }
         tokenizer = new StringTokenizer(directory == null ? filename : directory, ".");
-        tokenizer.nextToken();
-        String extension = tokenizer.nextToken();
-        return extension.equals(EXW) ? this.getExecutable(directoryAW, filename) : this.getData(directoryAW, filename);
+        filename = tokenizer.nextToken();
+        String extension;
+        try {
+            extension = tokenizer.nextToken();
+        } catch (NoSuchElementException e) {
+            throw new IllegalFileFormatException();
+        }
+        return extension.equals(EXW) ? this.getExecutable(directoryAW, filename + "." + extension) : this.getData(directoryAW, filename + "." + extension);
     }
 
     public FileAW getFile(int index) {
@@ -74,11 +76,11 @@ public class FileManagerAW {
     public void loadFile(String filename, ExecutableAW executableAW) throws IllegalFileFormatException {
         StringTokenizer tokenizer = new StringTokenizer(filename, ".");
         String extension = null;
-		StringBuilder directory = new StringBuilder();
+        StringBuilder directory = new StringBuilder();
         while (tokenizer.hasMoreTokens()) extension = tokenizer.nextToken();
         tokenizer = new StringTokenizer(filename, "/");
-		while (tokenizer.countTokens() > 1) directory.append(tokenizer.nextToken()).append("/");
-		String file = tokenizer.nextToken();
+        while (tokenizer.countTokens() > 1) directory.append(tokenizer.nextToken()).append("/");
+        String file = tokenizer.nextToken();
         FileAW<ExecutableAW> fileAW;
         if (extension == null) throw new IllegalFileFormatException();
         if (extension.equals(EXW)) fileAW = new FileAW<>(file, extension, directory.toString(), executableAW);
@@ -109,7 +111,7 @@ public class FileManagerAW {
         DirectoryAW directoryAW = CDrive;
         while (tokenizer.countTokens() > 1) {
             DirectoryAW temp = this.createDirectory(directoryAW, tokenizer.nextToken());
-            if (!directoryAW.contains(temp)){
+            if (!directoryAW.contains(temp)) {
                 directoryAW.directoryMap.put(temp.name, directoryAW.directoryAWS.size());
                 directoryAW.directoryAWS.add(temp);
             }
@@ -137,7 +139,8 @@ public class FileManagerAW {
 
     private DirectoryAW createDirectory(DirectoryAW directoryAW, String name) {
         DirectoryAW directory = new DirectoryAW(name);
-        if (directoryAW.directoryMap.containsKey(name)) return directoryAW.directoryAWS.get(directoryAW.directoryMap.get(name));
+        if (directoryAW.directoryMap.containsKey(name))
+            return directoryAW.directoryAWS.get(directoryAW.directoryMap.get(name));
         directoryAW.directoryMap.put(name, directoryAW.directoryAWS.size());
         directoryAW.directoryAWS.add(directory);
         return directory;

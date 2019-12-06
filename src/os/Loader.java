@@ -9,6 +9,7 @@ import os.compiler.CompilerAW;
 import os.compiler.ConverterAW;
 
 import java.security.SecureRandom;
+import java.util.StringTokenizer;
 
 public class Loader {
 	private static final SecureRandom random = new SecureRandom();
@@ -30,7 +31,11 @@ public class Loader {
 			compilerAW.parse();
 			ConverterAW<CompilerAW> converterAW = new ConverterAW<>();
 			ExecutableAW executableAW = converterAW.convert(compilerAW);
-			OperatingSystem.fileManagerAW.loadFile(awx.filename, executableAW);
+			StringTokenizer tokenizer = new StringTokenizer(awx.filename, ".");
+			StringBuilder builder = new StringBuilder();
+			while(tokenizer.countTokens()>1) builder.append(tokenizer.nextToken());
+			builder.append(".").append(FileManagerAW.EXW);
+			OperatingSystem.fileManagerAW.loadFile(builder.toString(), executableAW);
 			Loader.load(executableAW);
 			System.out.println("process load");
 		} catch (IllegalFormatException | IllegalInstructionException | DuplicateVariableException | IllegalFileFormatException e) {

@@ -1,12 +1,16 @@
 package os;
 
+import global.IllegalFileFormatException;
 import os.compiler.CompilerAW;
 import pc.mainboard.cpu.Register;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.util.Arrays;
 
 public class UXManagerAW extends JFrame {
     private JTextArea console;
@@ -57,15 +61,20 @@ public class UXManagerAW extends JFrame {
         // TODO: place custom component creation code here
         this.fileList = new JTree();
         this.fileList.addTreeSelectionListener((event) -> {
-            System.out.println(event.getPath());
-            Object last = event.getPath().getLastPathComponent();
-            if (last instanceof FileManagerAW.DirectoryAW) {
-                FileManagerAW.DirectoryAW directoryAW = (FileManagerAW.DirectoryAW) last;
-                System.out.println(this.fileRoot.getChildCount());
-            } else if (last instanceof FileManagerAW.FileAW) {
-                FileManagerAW.FileAW fileAW = (FileManagerAW.FileAW) last;
-                if (fileAW.content instanceof String) Loader.load(fileAW);
-                else if (fileAW.content instanceof ExecutableAW) Loader.load((ExecutableAW) fileAW.content);
+            TreePath path = event.getPath();
+            StringBuilder builder = new StringBuilder();
+            Object[] elements = path.getPath();
+            for (int i = 1; i < elements.length - 1; i++) {
+                builder.append(elements[i].toString()).append("/");
+            }
+            builder.append(elements[elements.length - 1].toString());
+            System.out.println(builder.toString());
+            try {
+                FileManagerAW.FileAW fileAW = OperatingSystem.fileManagerAW.getFile(builder.toString());
+                if (fileAW.extension.equals(FileManagerAW.AWX)) {
+                    Loader.load(fileAW);
+                }
+            } catch (IllegalFileFormatException ignored) {
             }
         });
         this.memory = new JTree();
@@ -86,8 +95,8 @@ public class UXManagerAW extends JFrame {
         this.csrValue.setText(String.valueOf(Register.CSR.data));
         this.hsrValue.setText(String.valueOf(Register.HSR.data));
         this.mbrValue.setText(String.valueOf(Register.MBR.data));
-        this.iraValue.setText(String.valueOf(Register.IR.data >>> CompilerAW.instruction_bit));
-        this.iroValue.setText(String.valueOf(Register.IR.data & 0x00ffffff));
+        this.iroValue.setText(String.valueOf(Register.IR.data >>> CompilerAW.instruction_bit));
+        this.iraValue.setText(String.valueOf(Register.IR.data & 0x00ffffff));
         this.spValue.setText(String.valueOf(Register.SP.data));
         this.pcValue.setText(String.valueOf(Register.PC.data));
         this.statusValue.setText(String.valueOf(Register.STATUS.data));
