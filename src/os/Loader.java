@@ -2,6 +2,7 @@ package os;
 
 
 import global.DuplicateVariableException;
+import global.IllegalFileFormatException;
 import global.IllegalFormatException;
 import global.IllegalInstructionException;
 import os.compiler.CompilerAW;
@@ -19,5 +20,21 @@ public class Loader {
 				executableAW.startLine);
 		OperatingSystem.memoryManagerAW.load(processAW);
 		System.out.println("process load");
+	}
+
+	public synchronized static void load(FileManagerAW.FileAW<String> awx){
+		random.setSeed(System.currentTimeMillis());
+		try {
+			CompilerAW compilerAW = new CompilerAW(awx);
+			compilerAW.initialize();
+			compilerAW.parse();
+			ConverterAW<CompilerAW> converterAW = new ConverterAW<>();
+			ExecutableAW executableAW = converterAW.convert(compilerAW);
+			OperatingSystem.fileManagerAW.loadFile(awx.filename, executableAW);
+			Loader.load(executableAW);
+			System.out.println("process load");
+		} catch (IllegalFormatException | IllegalInstructionException | DuplicateVariableException | IllegalFileFormatException e) {
+			e.printStackTrace();
+		}
 	}
 }

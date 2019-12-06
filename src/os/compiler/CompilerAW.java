@@ -1,8 +1,10 @@
 package os.compiler;
 
 import global.DuplicateVariableException;
+import global.IllegalFileFormatException;
 import global.IllegalFormatException;
 import global.IllegalInstructionException;
+import os.FileManagerAW;
 import os.OperatingSystem;
 import pc.mainboard.cpu.CentralProcessingUnit;
 
@@ -38,16 +40,18 @@ public class CompilerAW {
 	private ArrayList<String> wait_until_use;
 	private int instanceAddress;
 	private boolean isMain, previousMain, necessity;
-	private String instruction_lines;
+	private FileManagerAW.FileAW<String> fileAW;
+	private String default_directory;
 	static final String main = "main";
 	static ArrayList<Integer> code, data;
 	int size;
 	int new_main_line;
 
 
-	public CompilerAW(String instruction_lines) {
-		this.instruction_lines = instruction_lines;
-		this.scanner = new Scanner(instruction_lines);
+	public CompilerAW(FileManagerAW.FileAW<String> fileAW) throws IllegalFileFormatException {
+		if (!fileAW.extension.equals(FileManagerAW.AWX)) throw new IllegalFileFormatException();
+		this.fileAW  = fileAW;
+		this.scanner = new Scanner(this.fileAW.content);
 		this.instance_instances = new HashMap<>();
 		this.instance_variables = new HashMap<>();
 		this.local_size = new HashMap<>();
@@ -58,15 +62,16 @@ public class CompilerAW {
 		this.previousMain = this.necessity = true;
 	}
 
-	public void initialize(String filename) {
+	public void initialize() throws IllegalFormatException {
 		class_instances = new HashMap<>();
 		class_variables = new HashMap<>();
 		importModules = new HashMap<>();
-		importModules.put(filename, this);
+		importModules.put(this.fileAW.filename, this);
 		code = new ArrayList<>();
 		data = new ArrayList<>();
 		heapAddress = dataAddress = 0;
-		this.isMain = main_pattern.matcher(this.instruction_lines).find();
+		this.isMain = main_pattern.matcher(this.fileAW.content).find();
+		if (!this.isMain) throw new IllegalFormatException();
 		this.instance_variables.put(self, heapAddress++);
 	}
 
@@ -85,9 +90,13 @@ public class CompilerAW {
 				case imports:
 					String filename = tokenizer.nextToken();
 					if (!importModules.containsKey(filename)) {
-						CompilerAW compilerAW = new CompilerAW(OperatingSystem.fileManagerAW.getFile(filename));
-						compilerAW.parse();
-						importModules.put(filename, compilerAW);
+						try {
+							CompilerAW compilerAW = new CompilerAW(OperatingSystem.fileManagerAW.getFile(filename));
+							compilerAW.parse();
+							importModules.put(filename, compilerAW);
+						} catch (IllegalFileFormatException e) {
+							throw new IllegalFormatException();
+						}
 					}
 					break;
 				case staticData:

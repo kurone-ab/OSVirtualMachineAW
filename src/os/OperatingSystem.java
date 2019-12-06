@@ -17,6 +17,7 @@ public class OperatingSystem {
 		fileManagerAW = new FileManagerAW();
 		deviceManagerAW = new DeviceManagerAW();
 		uxManagerAW = new UXManagerAW();
+		fileManagerAW.on();
 		uxManagerAW.on();
 	}
 

@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 public class ProcessManagerAW {
 	private SchedulingQueue ready = new SchedulingQueue(), wait = new SchedulingQueue();
 	private ProcessControlBlock currentProcess;
+	private int delay;
 
 	synchronized void newProcess(int index, ProcessAW processAW) {
 		ProcessControlBlock pcb = new ProcessControlBlock();
@@ -41,11 +42,13 @@ public class ProcessManagerAW {
 		OperatingSystem.uxManagerAW.updateRegisters();
 		long start = System.nanoTime();
 		while (this.currentProcess != null) {
-//            try {
-//                Thread.sleep(500);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+			if (this.delay!=0) {
+				try {
+					Thread.sleep(this.delay);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 			System.out.println("current process id: " + this.currentProcess.pid);
 			MainBoard.cpu.clock();
 			OperatingSystem.uxManagerAW.updateRegisters();
@@ -78,6 +81,10 @@ public class ProcessManagerAW {
 
 	public synchronized void isrFinished(int pid) {
 		ready.offer(wait.pull(pid));
+	}
+
+	public void setDelay(int delay){
+		this.delay = delay;
 	}
 
 	private void contextSwitch(State state) {
