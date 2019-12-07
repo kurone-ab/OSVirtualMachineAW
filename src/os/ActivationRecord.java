@@ -1,5 +1,6 @@
 package os;
 
+import java.util.Arrays;
 import java.util.Vector;
 
 public class ActivationRecord {
@@ -11,5 +12,12 @@ public class ActivationRecord {
 		this.returnHSR = returnHSR;
 		this.returnPC = returnPC;
 		this.local = new int[size];
+	}
+
+	@Override
+	public String toString() {
+		return "ActivationRecord{" +
+				"local variables=" + Arrays.toString(local) +
+				'}';
 	}
 }

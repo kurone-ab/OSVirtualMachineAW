@@ -39,4 +39,11 @@ public class ProcessAW {
 				.append(pid)
 				.toHashCode();
 	}
+
+	@Override
+	public String toString() {
+		return "ProcessAW{" +
+				"pid=" + pid +
+				'}';
+	}
 }

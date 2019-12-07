@@ -327,7 +327,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="6a8d7" class="javax.swing.JTree" binding="memory" custom-create="true">
+          <component id="6a8d7" class="javax.swing.JTree" binding="memoryList" custom-create="true">
             <constraints/>
             <properties>
               <toolTipText value="memory"/>

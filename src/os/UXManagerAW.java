@@ -7,7 +7,6 @@ import pc.mainboard.cpu.Register;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.Arrays;
@@ -39,7 +38,7 @@ public class UXManagerAW extends JFrame {
     private JLabel itrValue;
     private JLabel cu;
     private JLabel alu;
-    private JTree memory;
+    private JTree memoryList;
     private JList ioList;
     private JLabel con;
     private JLabel fi;
@@ -54,8 +53,6 @@ public class UXManagerAW extends JFrame {
     private JSpinner delay;
     private JLabel cdelay;
     private JLabel path;
-    private DefaultMutableTreeNode fileRoot;
-    private DefaultTreeModel fileModel;
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
@@ -77,7 +74,7 @@ public class UXManagerAW extends JFrame {
             } catch (IllegalFileFormatException ignored) {
             }
         });
-        this.memory = new JTree();
+        this.memoryList = new JTree();
         this.delay = new JSpinner();
         this.delay.setModel(new SpinnerNumberModel(0, 0, 1000, 100));
         this.delay.addChangeListener((e) -> OperatingSystem.processManagerAW.setDelay((Integer) this.delay.getValue()));
@@ -106,10 +103,40 @@ public class UXManagerAW extends JFrame {
 
     public void updateFile() {
         FileManagerAW.DirectoryAW rootName = OperatingSystem.fileManagerAW.getRootDirectory();
-        this.fileRoot = new DefaultMutableTreeNode(rootName.getName());
-        this.createNode(this.fileRoot, rootName);
-        this.fileModel = new DefaultTreeModel(this.fileRoot);
-        this.fileList.setModel(this.fileModel);
+        DefaultMutableTreeNode fileRoot = new DefaultMutableTreeNode(rootName.getName());
+        this.createNode(fileRoot, rootName);
+        DefaultTreeModel fileModel = new DefaultTreeModel(fileRoot);
+        this.fileList.setModel(fileModel);
+    }
+
+    public void updateMemory() {
+        DefaultMutableTreeNode memoryRoot = new DefaultMutableTreeNode("memoryList");
+        for (ProcessAW processAW : OperatingSystem.memoryManagerAW.getLoadedProcess())
+            this.createNode(memoryRoot, processAW);
+        DefaultTreeModel memoryModel = new DefaultTreeModel(memoryRoot);
+        this.memoryList.setModel(memoryModel);
+    }
+
+    private void createNode(DefaultMutableTreeNode node, ProcessAW processAW) {
+        DefaultMutableTreeNode codeNode = new DefaultMutableTreeNode("code");
+        codeNode.add(new DefaultMutableTreeNode(Arrays.toString(processAW.code)));
+        DefaultMutableTreeNode dataNode = new DefaultMutableTreeNode("data");
+        dataNode.add(new DefaultMutableTreeNode(Arrays.toString(processAW.data)));
+        DefaultMutableTreeNode stackNode = new DefaultMutableTreeNode("stack");
+        for (ActivationRecord ar : processAW.stack) {
+            if (ar == null) break;
+            DefaultMutableTreeNode arNode = new DefaultMutableTreeNode(ar);
+            stackNode.add(arNode);
+        }
+        DefaultMutableTreeNode heapNode = new DefaultMutableTreeNode("heap");
+        for (Instance instance : processAW.heap) {
+            DefaultMutableTreeNode instanceNode = new DefaultMutableTreeNode(instance);
+            stackNode.add(instanceNode);
+        }
+        node.add(codeNode);
+        node.add(dataNode);
+        node.add(stackNode);
+        node.add(heapNode);
     }
 
     private void createNode(DefaultMutableTreeNode node, FileManagerAW.DirectoryAW nodeName) {
@@ -466,8 +493,8 @@ public class UXManagerAW extends JFrame {
         gbc.ipadx = 100;
         gbc.insets = new Insets(0, 15, 0, 15);
         main.add(scrollPane1, gbc);
-        memory.setToolTipText("memory");
-        scrollPane1.setViewportView(memory);
+        memoryList.setToolTipText("memory");
+        scrollPane1.setViewportView(memoryList);
         memo = new JLabel();
         Font memoFont = this.$$$getFont$$$(null, -1, 15, memo.getFont());
         if (memoFont != null) memo.setFont(memoFont);
