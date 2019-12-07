@@ -430,7 +430,7 @@ public class UXManagerAW extends JFrame {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 4;
+        gbc.gridwidth = 5;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(0, 0, 10, 0);
         cpuPanel.add(delayPanel, gbc);
@@ -442,7 +442,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0.3;
-        gbc.anchor = GridBagConstraints.EAST;
+        gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(0, 0, 0, 20);
         delayPanel.add(cdelay, gbc);
         gbc = new GridBagConstraints();
@@ -450,17 +450,17 @@ public class UXManagerAW extends JFrame {
         if (delayFont != null) delay.setFont(delayFont);
         gbc.gridx = 1;
         gbc.gridy = 0;
+        gbc.gridwidth = 4;
         gbc.weightx = 0.7;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.EAST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 0, 0, 10);
         delayPanel.add(delay, gbc);
         sperator = new JSeparator();
-        sperator.setForeground(new Color(-10890106));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
-        gbc.gridwidth = 4;
+        gbc.gridwidth = 5;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 0, 10, 0);
         cpuPanel.add(sperator, gbc);
