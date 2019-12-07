@@ -1,8 +1,8 @@
 allocate 10
-import exe/test3.awx
+import exe/project1/sub.awx
 static a = 10
 assn y = 5
-use exe/test3.awx as t
+use exe/project1/sub.awx as t
 
 func d() {
     t.change()
@@ -20,8 +20,8 @@ func d() {
 
 func f(x) {
     d()
-    use exe/test3.awx as t3
-    use exe/test3.awx as t2
+    use exe/project1/sub.awx as t3
+    use exe/project1/sub.awx as t2
     t2.change()
     /-- b = t3.f()
     /-- a = a + b + x + y

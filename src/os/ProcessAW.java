@@ -2,6 +2,7 @@ package os;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Vector;
 
@@ -42,8 +43,7 @@ public class ProcessAW {
 
 	@Override
 	public String toString() {
-		return "ProcessAW{" +
-				"pid=" + pid +
+		return "ProcessAW {" + "pid=" + pid +
 				'}';
 	}
 }

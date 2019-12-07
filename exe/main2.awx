@@ -1,0 +1,26 @@
+allocate 5
+import exe/project1/sub.awx
+static a
+static b
+static c
+use exe/project1/sub.awx as sub
+
+func test() {
+    d = 3
+    c = a + b + c + d
+    return c
+}
+
+func change(x) {
+    a = x
+    return
+}
+
+func main() {
+    sub.change()
+    a = 4
+    b = 2
+    c = 91
+    c = test()
+    exit
+}

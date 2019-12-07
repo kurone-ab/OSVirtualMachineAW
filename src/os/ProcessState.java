@@ -1,5 +1,5 @@
 package os;
 
-public enum State {
+public enum ProcessState {
 	NEW, READY, RUN, WAIT, TERMINATE
 }

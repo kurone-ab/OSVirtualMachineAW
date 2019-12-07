@@ -1,10 +1,7 @@
 package os;
 
 
-import global.DuplicateVariableException;
-import global.IllegalFileFormatException;
-import global.IllegalFormatException;
-import global.IllegalInstructionException;
+import global.*;
 import os.compiler.CompilerAW;
 import os.compiler.ConverterAW;
 
@@ -14,16 +11,16 @@ import java.util.StringTokenizer;
 public class Loader {
 	private static final SecureRandom random = new SecureRandom();
 
-	public synchronized static void load(ExecutableAW executableAW){
+	public synchronized static void load(ExecutableAW executableAW, int priority){
 		random.setSeed(System.currentTimeMillis());
-		ProcessAW processAW = new ProcessAW(random.nextInt(((int) (Math.random() * 1000))),
+		ProcessAW processAW = new ProcessAW(random.nextInt(251648),
 				executableAW.code, executableAW.data, executableAW.size,
 				executableAW.startLine);
-		OperatingSystem.memoryManagerAW.load(processAW);
+		OperatingSystem.memoryManagerAW.load(processAW, priority);
 		System.out.println("process load");
 	}
 
-	public synchronized static void load(FileManagerAW.FileAW<String> awx){
+	public synchronized static void load(FileManagerAW.FileAW<String> awx, int priority){
 		random.setSeed(System.currentTimeMillis());
 		try {
 			CompilerAW compilerAW = new CompilerAW(awx);
@@ -31,15 +28,11 @@ public class Loader {
 			compilerAW.parse();
 			ConverterAW<CompilerAW> converterAW = new ConverterAW<>();
 			ExecutableAW executableAW = converterAW.convert(compilerAW);
-			StringTokenizer tokenizer = new StringTokenizer(awx.filename, ".");
-			StringBuilder builder = new StringBuilder();
-			while(tokenizer.countTokens()>1) builder.append(tokenizer.nextToken());
-			builder.append(".").append(FileManagerAW.EXW);
-			OperatingSystem.fileManagerAW.loadFile(builder.toString(), executableAW);
-			Loader.load(executableAW);
-			System.out.println("process load");
+			Loader.load(executableAW, priority);
 		} catch (IllegalFormatException | IllegalInstructionException | DuplicateVariableException | IllegalFileFormatException e) {
 			e.printStackTrace();
+		} catch (NotMainAWXFileException e) {
+			OperatingSystem.uxManagerAW.errorMessage(e.getMessage());
 		}
 	}
 }

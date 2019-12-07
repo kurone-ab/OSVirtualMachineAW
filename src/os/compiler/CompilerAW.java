@@ -1,9 +1,6 @@
 package os.compiler;
 
-import global.DuplicateVariableException;
-import global.IllegalFileFormatException;
-import global.IllegalFormatException;
-import global.IllegalInstructionException;
+import global.*;
 import os.FileManagerAW;
 import os.OperatingSystem;
 import pc.mainboard.cpu.CentralProcessingUnit;
@@ -62,7 +59,7 @@ public class CompilerAW {
 		this.previousMain = this.necessity = true;
 	}
 
-	public void initialize() throws IllegalFormatException {
+	public void initialize() throws NotMainAWXFileException {
 		class_instances = new HashMap<>();
 		class_variables = new HashMap<>();
 		importModules = new HashMap<>();
@@ -71,7 +68,7 @@ public class CompilerAW {
 		data = new ArrayList<>();
 		heapAddress = dataAddress = 0;
 		this.isMain = main_pattern.matcher(this.fileAW.content).find();
-		if (!this.isMain) throw new IllegalFormatException();
+		if (!this.isMain) throw new NotMainAWXFileException("You cannot run a file without the main method.");
 		this.instance_variables.put(self, heapAddress++);
 	}
 
@@ -306,7 +303,6 @@ public class CompilerAW {
 					throw new IllegalInstructionException();
 			}
 		}
-		System.out.println(functions);
 	}
 
 	public int stack() {
@@ -377,7 +373,6 @@ public class CompilerAW {
 				compilerAW = class_instances.get(instance);
 				heap = class_variables.get(instance);
 			} else {
-				System.out.println(instances);
 				throw new IllegalFormatException();
 			}
 		}
@@ -456,7 +451,6 @@ public class CompilerAW {
 				heap = class_variables.get(instance);
 				compilerAW = class_instances.get(instance);
 			} else {
-				System.out.println(instance);
 				throw new IllegalFormatException();
 			}
 		}
@@ -561,7 +555,6 @@ public class CompilerAW {
 									(CentralProcessingUnit.Instruction.STA.ordinal() << instruction_bit,
 											store_target.toString(), variables, instances);
 						} else {
-							System.out.println(store_target);
 							throw new IllegalFormatException();
 						}
 					}
@@ -579,7 +572,6 @@ public class CompilerAW {
 		} else if (fnc_pattern.matcher(value).matches()) {//this is function call
 			this.functionCall(value, variables, instances);
 		} else {
-			System.out.println(value);
 			throw new IllegalFormatException();
 		}
 	}

@@ -1,5 +1,7 @@
 package os;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import java.util.Arrays;
 
 public class Instance {
@@ -11,8 +13,7 @@ public class Instance {
 
 	@Override
 	public String toString() {
-		return "Instance{" +
-				"instance variables=" + Arrays.toString(instance_variables) +
+		return "Instance {" + "variables=" + Arrays.toString(instance_variables) +
 				'}';
 	}
 }

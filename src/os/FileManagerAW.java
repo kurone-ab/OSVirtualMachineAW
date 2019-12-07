@@ -14,23 +14,28 @@ public class FileManagerAW {
     private static DirectoryAW CDrive;
 
     public FileManagerAW() {
-        CDrive = new DirectoryAW("C");
+        CDrive = new DirectoryAW("C:/");
     }
 
     public void on() {
         try {
             Scanner scanner;
             StringBuilder builder;
-            scanner = new Scanner(new File("exe/test2.awx"));
+            scanner = new Scanner(new File("exe/main.awx"));
             builder = new StringBuilder();
             while (scanner.hasNextLine())
                 builder.append(scanner.nextLine()).append("\r\n");
-            this.loadFile("exe/test2.awx", builder.toString());
-            scanner = new Scanner(new File("exe/test3.awx"));
+            this.loadFile("exe/project1/main.awx", builder.toString());
+            scanner = new Scanner(new File("exe/sub.awx"));
             builder = new StringBuilder();
             while (scanner.hasNextLine())
                 builder.append(scanner.nextLine()).append("\r\n");
-            this.loadFile("exe/test3.awx", builder.toString());
+            this.loadFile("exe/project1/sub.awx", builder.toString());
+            scanner = new Scanner(new File("exe/main2.awx"));
+            builder = new StringBuilder();
+            while (scanner.hasNextLine())
+                builder.append(scanner.nextLine()).append("\r\n");
+            this.loadFile("exe/project2/main.awx", builder.toString());
         } catch (FileNotFoundException | IllegalFileFormatException e) {
             e.printStackTrace();
         }

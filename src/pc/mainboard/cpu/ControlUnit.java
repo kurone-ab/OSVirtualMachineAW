@@ -207,7 +207,7 @@ class ControlUnit {
 	}
 
 	private void FNC() {
-		int size = IR.data & 0x0000ffff;
+		int size = IR.data & 0x00000fff;
 		int parameter_count = (IR.data >>> CompilerAW.parameter_bit) & 0x000000ff;
 		parameter_count *= 2;
 		int correction = (IR.data >>> CompilerAW.correction_bit) & 0x0000000f;

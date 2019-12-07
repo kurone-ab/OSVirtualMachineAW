@@ -1,5 +1,7 @@
 package os;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -16,8 +18,9 @@ public class ActivationRecord {
 
 	@Override
 	public String toString() {
-		return "ActivationRecord{" +
-				"local variables=" + Arrays.toString(local) +
+		return "ActivationRecord {" + "returnHSR=" + returnHSR +
+				", returnPC=" + returnPC +
+				", variables=" + Arrays.toString(local) +
 				'}';
 	}
 }

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public class ProcessControlBlock implements Comparable<ProcessControlBlock> {
 	int pid, priority;
 	int[] context;
-	State ps;
+	ProcessState ps;
 
 	@Override
 	public boolean equals(Object o) {
@@ -32,5 +32,13 @@ public class ProcessControlBlock implements Comparable<ProcessControlBlock> {
 	@Override
 	public int compareTo(@NotNull ProcessControlBlock o) {
 		return this.priority > o.priority ? -1 : 1;
+	}
+
+	@Override
+	public String toString() {
+		return "ProcessControlBlock \r\n{" + "pid=" + pid +
+				", priority=" + priority +
+				", ps=" + ps +
+				'}';
 	}
 }
