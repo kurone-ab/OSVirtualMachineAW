@@ -41,7 +41,7 @@ func main() {
 }
 
 func c() {
-    irpt 1
+    print a
     return
 }
 

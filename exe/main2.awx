@@ -22,5 +22,6 @@ func main() {
     b = 2
     c = 91
     c = test()
+    print c
     exit
 }

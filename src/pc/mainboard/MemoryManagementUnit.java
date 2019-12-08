@@ -36,7 +36,25 @@ public class MemoryManagementUnit {
                 ram.heap_segment_fetch();
                 Register.HSR.data = recover;
                 break;
+        }
+    }
 
+    public int dataFetch(int address, int sp, int hsr, int csr) throws IllegalAccessException {
+        int segment = (address >>> CompilerAW.segment_bit) & 0x0000000f;
+        int correction = (address >>> CompilerAW.correction_bit) & 0x000000ff;
+        address = address & 0x00000fff;
+        switch (segment) {
+            case CompilerAW.dataSegment:
+                return ram.data_segment_fetch(sp, address);
+            case CompilerAW.stackSegment:
+                return ram.stack_segment_fetch(sp, csr, address);
+            case CompilerAW.heapSegment:
+                return ram.heap_segment_fetch(sp, hsr, address);
+            case CompilerAW.constant:
+                return address;
+            case CompilerAW.abnormal:
+                return ram.heap_segment_fetch(sp, correction, address);
+            default: throw new IllegalAccessException();
         }
     }
 
@@ -68,11 +86,10 @@ public class MemoryManagementUnit {
                 ram.heap_segment_store();
                 Register.HSR.data = recover;
                 break;
-
         }
     }
 
-    public void dataStore(int data, int address, int sp) {
+    public void dataStore(int data, int address, int sp, int hsr, int csr) {
         int segment = (address >>> CompilerAW.segment_bit) & 0x0000000f;
         int correction = (address >>> CompilerAW.correction_bit) & 0x000000ff;
         address = address & 0x00000fff;
@@ -81,18 +98,14 @@ public class MemoryManagementUnit {
                 ram.data_segment_store(sp, data, address);
                 break;
             case CompilerAW.stackSegment:
-//                ram.stack_segment_store(sp, );
+                ram.stack_segment_store(sp, data, address, csr);
                 break;
             case CompilerAW.heapSegment:
-                ram.heap_segment_store();
+                ram.heap_segment_store(sp, data, address, hsr);
                 break;
             case CompilerAW.abnormal:
-                int recover = Register.HSR.data;
-                Register.HSR.data = correction;
-                ram.heap_segment_store();
-                Register.HSR.data = recover;
+                ram.heap_segment_store(sp, data, address, correction);
                 break;
-
         }
     }
 

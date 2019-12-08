@@ -8,7 +8,6 @@ public enum Register {
 	* 1. interrupt
 	* 2. zero flag
 	* 3. negative flag
-	* 4. halt
 	* */
 	/*
 	* program counter

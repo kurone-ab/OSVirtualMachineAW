@@ -2,6 +2,8 @@ package os;
 
 import global.IllegalFileFormatException;
 import os.compiler.CompilerAW;
+import pc.io.ConsoleAW;
+import pc.mainboard.MainBoard;
 import pc.mainboard.cpu.Register;
 
 import javax.swing.*;
@@ -50,7 +52,7 @@ public class UXManagerAW extends JFrame {
     private JList<ProcessAW> memory;
     private JScrollPane memoryPane;
     private JScrollPane consolePane;
-    private JTextArea console;
+    private ConsoleAW console;
     private JButton execute;
     private JButton pause;
     private JLabel path;
@@ -122,6 +124,8 @@ public class UXManagerAW extends JFrame {
         this.delay.addChangeListener((e) -> OperatingSystem.processManagerAW.setDelay((Integer) this.delay.getValue()));
         this.delay.setValue(500);
 
+        this.console = OperatingSystem.deviceManagerAW.getConsoleAW();
+
         this.processAWListModel = new DefaultListModel<>();
         this.readyListModel = new DefaultListModel<>();
         this.waitListModel = new DefaultListModel<>();
@@ -184,7 +188,7 @@ public class UXManagerAW extends JFrame {
             for (int i : processAW.data) this.dataListModel.addElement(i);
             this.arListModel.addAll(Arrays.asList(processAW.stack));
             this.instanceListModel.addAll(processAW.heap);
-        }
+        }else this.current.setText(currentString);
     }
 
     public void updateReadyQueue(Collection<ProcessControlBlock> processControlBlocks) {
@@ -520,7 +524,6 @@ public class UXManagerAW extends JFrame {
         gbc.insets = new Insets(0, 10, 0, 0);
         main.add(consolePane, gbc);
         consolePane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<CONSOLE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 18, consolePane.getFont())));
-        console = new JTextArea();
         console.setBackground(new Color(-1));
         Font consoleFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, console.getFont());
         if (consoleFont != null) console.setFont(consoleFont);

@@ -1,7 +1,5 @@
 package os;
 
-import pc.io.IODevice;
-
 public class OperatingSystem {
 	static final long TIME_SLICE = 1000000000/*15000000-15ms*/;
 	static ProcessManagerAW processManagerAW;
@@ -9,7 +7,8 @@ public class OperatingSystem {
 	public static FileManagerAW fileManagerAW;
 	static DeviceManagerAW deviceManagerAW;
 	static UXManagerAW uxManagerAW;
-	static InterruptServiceRoutine isr;
+	static InterruptVectorTable interruptVectorTable;
+	static Driver consoleDriver, networkDriver;
 
 	public void on(){
 		processManagerAW = new ProcessManagerAW();
@@ -17,13 +16,15 @@ public class OperatingSystem {
 		fileManagerAW = new FileManagerAW();
 		deviceManagerAW = new DeviceManagerAW();
 		uxManagerAW = new UXManagerAW();
+		interruptVectorTable = new InterruptVectorTable();
 		fileManagerAW.on();
 		memoryManagerAW.on();
 		uxManagerAW.on();
 	}
 
-	public void connect(IODevice device){
-
+	public void connect(){
+		consoleDriver = deviceManagerAW.getConsoleAW().getDriver();
+		networkDriver = deviceManagerAW.getNetworkAW().getDriver();
 	}
 
 }
