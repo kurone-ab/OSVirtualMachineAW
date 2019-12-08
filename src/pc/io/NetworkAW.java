@@ -1,20 +1,21 @@
 package pc.io;
 
+import os.Driver;
+
 public class NetworkAW implements IODevice {
 	@Override
 	public Driver getDriver() {
 		return null;
 	}
 
-	private class NetworkDriver implements Driver{
-
+	private static class NetworkDriver implements Driver{
 		@Override
-		public void input() {
+		public void input(int sp, int address, int data) {
 
 		}
 
 		@Override
-		public void output() {
+		public void output(int sp, int address) {
 
 		}
 	}

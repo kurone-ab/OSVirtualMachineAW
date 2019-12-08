@@ -12,6 +12,7 @@
     <orderEntry type="library" name="commons-lang3-3.91" level="project" />
     <orderEntry type="library" name="commons-lang3-3.92" level="project" />
     <orderEntry type="library" name="synthetica" level="project" />
+    <orderEntry type="library" name="synthetica1" level="project" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="renderExternalDocumentation" value="true" />

@@ -12,35 +12,92 @@ public class RandomAccessMemory {
 	}
 
 	void data_segment_fetch() {
-		ProcessAW processAW = memory[SP.data];
-		MBR.data = processAW.data[MAR.data];
+		synchronized (memory) {
+			ProcessAW processAW = memory[SP.data];
+			MBR.data = processAW.data[MAR.data];
+		}
 	}
 
 	void stack_segment_fetch() {
-		ProcessAW processAW = memory[SP.data];
-		MBR.data = processAW.stack[CSR.data].local[MAR.data];
+		synchronized (memory) {
+			ProcessAW processAW = memory[SP.data];
+			MBR.data = processAW.stack[CSR.data].local[MAR.data];
+		}
 	}
 
 	void heap_segment_fetch() {
-		ProcessAW processAW = memory[SP.data];
-		MBR.data = processAW.heap.get(HSR.data).instance_variables[MAR.data];
+		synchronized (memory) {
+			ProcessAW processAW = memory[SP.data];
+			MBR.data = processAW.heap.get(HSR.data).instance_variables[MAR.data];
+		}
 	}
 
 
 	void data_segment_store() {
-		ProcessAW processAW = memory[SP.data];
-		processAW.data[MAR.data] = MBR.data;
+		synchronized (memory) {
+			ProcessAW processAW = memory[SP.data];
+			processAW.data[MAR.data] = MBR.data;
+		}
 	}
 
 
 	void stack_segment_store() {
-		ProcessAW processAW = memory[SP.data];
-		processAW.stack[CSR.data].local[MAR.data] = MBR.data;
+		synchronized (memory) {
+			ProcessAW processAW = memory[SP.data];
+			processAW.stack[CSR.data].local[MAR.data] = MBR.data;
+		}
 	}
 
 
 	void heap_segment_store() {
-		ProcessAW processAW = memory[SP.data];
-		processAW.heap.get(HSR.data).instance_variables[MAR.data] = MBR.data;
+		synchronized (memory) {
+			ProcessAW processAW = memory[SP.data];
+			processAW.heap.get(HSR.data).instance_variables[MAR.data] = MBR.data;
+		}
+	}
+
+	int data_segment_fetch(int sp, int address) {
+		synchronized (memory) {
+			ProcessAW processAW = memory[sp];
+			return processAW.data[address];
+		}
+	}
+
+	int stack_segment_fetch(int sp, int csr, int address) {
+		synchronized (memory) {
+			ProcessAW processAW = memory[sp];
+			return processAW.stack[csr].local[address];
+		}
+	}
+
+	int heap_segment_fetch(int sp, int hsr, int address) {
+		synchronized (memory) {
+			ProcessAW processAW = memory[sp];
+			return processAW.heap.get(hsr).instance_variables[address];
+		}
+	}
+
+
+	void data_segment_store(int sp, int data, int address) {
+		synchronized (memory) {
+			ProcessAW processAW = memory[sp];
+			processAW.data[address] = data;
+		}
+	}
+
+
+	void stack_segment_store(int sp, int data, int address, int csr) {
+		synchronized (memory) {
+			ProcessAW processAW = memory[sp];
+			processAW.stack[csr].local[address] = data;
+		}
+	}
+
+
+	void heap_segment_store(int sp, int data, int address, int hsr) {
+		synchronized (memory) {
+			ProcessAW processAW = memory[sp];
+			processAW.heap.get(hsr).instance_variables[address] = data;
+		}
 	}
 }
