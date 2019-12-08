@@ -19,7 +19,7 @@ public class NetworkAW implements IODevice {
 
 	private static class NetworkDriver implements Driver{
 		@Override
-		public void input(int sp, int address, int csr, int hsr, int data) {
+		public void input(int sp, int address, int csr, int hsr) {
 
 		}
 

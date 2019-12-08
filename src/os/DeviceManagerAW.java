@@ -6,11 +6,11 @@ import pc.io.NetworkAW;
 import pc.mainboard.MainBoard;
 import pc.mainboard.cpu.Register;
 
-import java.util.Vector;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 public class DeviceManagerAW {
-    private ConcurrentLinkedQueue<Integer> ioQueue = new ConcurrentLinkedQueue<>();
+    private PriorityQueue<Integer> ioQueue = new PriorityQueue<>();// TODO: 2019-12-09 not interrupt id change to isr
 
     boolean hasMoreInterrupt() {
         return !this.ioQueue.isEmpty();
@@ -26,6 +26,10 @@ public class DeviceManagerAW {
 
     int getInterrupt() {
         return ioQueue.poll();
+    }
+
+    void setConsoleEditable(boolean editable){
+        MainBoard.consoleAW.setEditable(editable);
     }
 
     ConsoleAW getConsoleAW() {

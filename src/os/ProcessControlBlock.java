@@ -36,7 +36,7 @@ public class ProcessControlBlock implements Comparable<ProcessControlBlock> {
 
 	@Override
 	public String toString() {
-		return "ProcessControlBlock \r\n{" + "pid=" + pid +
+		return "{" + "pid=" + pid +
 				", priority=" + priority +
 				", ps=" + ps +
 				'}';

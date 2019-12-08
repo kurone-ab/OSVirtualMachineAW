@@ -23,5 +23,7 @@ func main() {
     c = 91
     c = test()
     print c
+    input c
+    print c
     exit
 }

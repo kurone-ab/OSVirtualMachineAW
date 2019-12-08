@@ -4,6 +4,7 @@ import global.IllegalFileFormatException;
 import os.compiler.CompilerAW;
 import pc.io.ConsoleAW;
 import pc.mainboard.MainBoard;
+import pc.mainboard.cpu.CentralProcessingUnit;
 import pc.mainboard.cpu.Register;
 
 import javax.swing.*;
@@ -16,60 +17,35 @@ import java.util.Arrays;
 import java.util.Collection;
 
 public class UXManagerAW extends JFrame {
-    private static final String pathString = "PATH: ", pauseString = "||", continueString = ">", currentString = "CURRENT PROCESS ID: ";
+    private static final String pathString = "PATH: ", pauseString = "||", continueString = ">",
+            currentString = "CURRENT PROCESS ID: ", instructionString = "CURRENT INSTRUCTION: ";
     private JPanel main;
-    private JScrollPane filePane;
     private JTree fileTree;
-    private JPanel cpuPanel;
-    private JLabel mar;
     private JLabel marValue;
-    private JLabel csr;
     private JLabel csrValue;
-    private JLabel hsr;
     private JLabel hsrValue;
-    private JLabel mbr;
     private JLabel mbrValue;
-    private JLabel sp;
     private JLabel spValue;
-    private JLabel iro;
     private JLabel iroValue;
-    private JLabel ira;
     private JLabel iraValue;
-    private JLabel itr;
     private JLabel itrValue;
-    private JLabel pc;
     private JLabel pcValue;
-    private JLabel ac;
     private JLabel acValue;
-    private JLabel status;
     private JLabel statusValue;
-    private JLabel cu;
-    private JLabel alu;
-    private JPanel delayPanel;
-    private JLabel cdelay;
     private JSpinner delay;
-    private JSeparator sperator;
     private JList<ProcessAW> memory;
-    private JScrollPane memoryPane;
-    private JScrollPane consolePane;
     private ConsoleAW console;
     private JButton execute;
     private JButton pause;
     private JLabel path;
     private JList<ProcessControlBlock> ready;
-    private JScrollPane readyPane;
-    private JScrollPane waitPane;
     private JList<ProcessControlBlock> wait;
-    private JTabbedPane currentProcess;
     private JList<Integer> codeLine;
     private JList<Integer> dataLine;
     private JList<ActivationRecord> locals;
     private JList<Instance> instances;
-    private JScrollPane codePane;
-    private JScrollPane dataPane;
-    private JScrollPane stackPane;
-    private JScrollPane heapPane;
     private JLabel current;
+    private JLabel currentInstruction;
 
     private DefaultListModel<ProcessAW> processAWListModel;
     private DefaultListModel<ProcessControlBlock> readyListModel;
@@ -87,7 +63,7 @@ public class UXManagerAW extends JFrame {
         this.execute.addActionListener((e) -> {
             String priority = JOptionPane.showInputDialog("Set Process Priority.");
             int pri = 0;
-            if (priority != null) if (priority.matches("[0-9]+")) pri = Integer.parseInt(priority);
+            if (priority != null) if (priority.matches("[\\-0-9]+")) pri = Integer.parseInt(priority);
             Loader.load(this.executableFile, pri);
         });
 
@@ -151,17 +127,19 @@ public class UXManagerAW extends JFrame {
     }
 
     public void updateRegisters() {
+        int inst = Register.IR.data >>> CompilerAW.instruction_bit;
         this.marValue.setText(String.valueOf(Register.MAR.data));
         this.csrValue.setText(String.valueOf(Register.CSR.data));
         this.hsrValue.setText(String.valueOf(Register.HSR.data));
         this.mbrValue.setText(String.valueOf(Register.MBR.data));
-        this.iroValue.setText(String.valueOf(Register.IR.data >>> CompilerAW.instruction_bit));
+        this.iroValue.setText(String.valueOf(inst));
         this.iraValue.setText(String.valueOf(Register.IR.data & 0x00ffffff));
         this.spValue.setText(String.valueOf(Register.SP.data));
         this.pcValue.setText(String.valueOf(Register.PC.data));
         this.statusValue.setText(String.valueOf(Register.STATUS.data));
         this.acValue.setText(String.valueOf(Register.AC.data));
         this.itrValue.setText(String.valueOf(Register.ITR.data));
+        this.currentInstruction.setText(instructionString+CentralProcessingUnit.Instruction.values()[inst].name());
     }
 
     public void updateFile() {
@@ -188,12 +166,20 @@ public class UXManagerAW extends JFrame {
             for (int i : processAW.data) this.dataListModel.addElement(i);
             this.arListModel.addAll(Arrays.asList(processAW.stack));
             this.instanceListModel.addAll(processAW.heap);
-        }else this.current.setText(currentString);
+        } else {
+            this.currentInstruction.setText(instructionString);
+            this.current.setText(currentString);
+        }
     }
 
     public void updateReadyQueue(Collection<ProcessControlBlock> processControlBlocks) {
         this.readyListModel.clear();
         this.readyListModel.addAll(processControlBlocks);
+    }
+
+    public void updateWaitQueue(Collection<ProcessControlBlock> processControlBlocks) {
+        this.waitListModel.clear();
+        this.waitListModel.addAll(processControlBlocks);
     }
 
     private void createNode(DefaultMutableTreeNode node, FileManagerAW.DirectoryAW nodeName) {
@@ -220,13 +206,13 @@ public class UXManagerAW extends JFrame {
         main = new JPanel();
         main.setLayout(new GridBagLayout());
         main.setBackground(new Color(-1));
-        cpuPanel = new JPanel();
+        JPanel cpuPanel = new JPanel();
         cpuPanel.setLayout(new GridBagLayout());
         cpuPanel.setBackground(new Color(-1));
         cpuPanel.setForeground(new Color(-16777216));
-        cpuPanel.setMaximumSize(new Dimension(400, 400));
-        cpuPanel.setMinimumSize(new Dimension(400, 400));
-        cpuPanel.setPreferredSize(new Dimension(400, 400));
+        cpuPanel.setMaximumSize(new Dimension(450, 400));
+        cpuPanel.setMinimumSize(new Dimension(450, 400));
+        cpuPanel.setPreferredSize(new Dimension(450, 400));
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
@@ -235,7 +221,7 @@ public class UXManagerAW extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         main.add(cpuPanel, gbc);
         cpuPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), "<CPU>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 18, cpuPanel.getFont())));
-        mar = new JLabel();
+        JLabel mar = new JLabel();
         Font marFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, mar.getFont());
         if (marFont != null) mar.setFont(marFont);
         mar.setText("MAR");
@@ -253,7 +239,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 3;
         gbc.weightx = 0.1;
         cpuPanel.add(marValue, gbc);
-        csr = new JLabel();
+        JLabel csr = new JLabel();
         Font csrFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, csr.getFont());
         if (csrFont != null) csr.setFont(csrFont);
         csr.setText("CSR");
@@ -271,7 +257,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 5;
         gbc.weightx = 0.1;
         cpuPanel.add(csrValue, gbc);
-        hsr = new JLabel();
+        JLabel hsr = new JLabel();
         Font hsrFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, hsr.getFont());
         if (hsrFont != null) hsr.setFont(hsrFont);
         hsr.setText("HSR");
@@ -289,10 +275,10 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 7;
         gbc.weightx = 0.1;
         cpuPanel.add(hsrValue, gbc);
-        mbr = new JLabel();
+        JLabel mbr = new JLabel();
         Font mbrFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, mbr.getFont());
         if (mbrFont != null) mbr.setFont(mbrFont);
-        mbr.setText("MBR");
+        mbr.setText("     MBR     ");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 8;
@@ -307,7 +293,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 9;
         gbc.weightx = 0.1;
         cpuPanel.add(mbrValue, gbc);
-        sp = new JLabel();
+        JLabel sp = new JLabel();
         Font spFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, sp.getFont());
         if (spFont != null) sp.setFont(spFont);
         sp.setText("SP");
@@ -325,7 +311,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 3;
         gbc.weightx = 0.1;
         cpuPanel.add(spValue, gbc);
-        iro = new JLabel();
+        JLabel iro = new JLabel();
         Font iroFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, iro.getFont());
         if (iroFont != null) iro.setFont(iroFont);
         iro.setText("IR ODCODE");
@@ -343,7 +329,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 5;
         gbc.weightx = 0.1;
         cpuPanel.add(iroValue, gbc);
-        ira = new JLabel();
+        JLabel ira = new JLabel();
         Font iraFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, ira.getFont());
         if (iraFont != null) ira.setFont(iraFont);
         ira.setText("IR ADDRESS");
@@ -361,7 +347,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 7;
         gbc.weightx = 0.1;
         cpuPanel.add(iraValue, gbc);
-        itr = new JLabel();
+        JLabel itr = new JLabel();
         Font itrFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, itr.getFont());
         if (itrFont != null) itr.setFont(itrFont);
         itr.setText("ITR");
@@ -379,7 +365,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 9;
         gbc.weightx = 0.1;
         cpuPanel.add(itrValue, gbc);
-        pc = new JLabel();
+        JLabel pc = new JLabel();
         Font pcFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, pc.getFont());
         if (pcFont != null) pc.setFont(pcFont);
         pc.setText("PC");
@@ -397,7 +383,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 9;
         gbc.weightx = 0.1;
         cpuPanel.add(acValue, gbc);
-        cu = new JLabel();
+        JLabel cu = new JLabel();
         Font cuFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, cu.getFont());
         if (cuFont != null) cu.setFont(cuFont);
         cu.setText("<html><center>CONTROL</center><center>UNIT</center></html>");
@@ -407,7 +393,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridheight = 4;
         gbc.weightx = 0.1;
         cpuPanel.add(cu, gbc);
-        alu = new JLabel();
+        JLabel alu = new JLabel();
         Font aluFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, alu.getFont());
         if (aluFont != null) alu.setFont(aluFont);
         alu.setText("<html><center>ARITHMATIC</center><center>LOGIC</center><center>UNIT</center></html>");
@@ -417,7 +403,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridheight = 4;
         gbc.weightx = 0.1;
         cpuPanel.add(alu, gbc);
-        delayPanel = new JPanel();
+        JPanel delayPanel = new JPanel();
         delayPanel.setLayout(new GridBagLayout());
         delayPanel.setBackground(new Color(-1));
         gbc = new GridBagConstraints();
@@ -427,7 +413,7 @@ public class UXManagerAW extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(0, 0, 10, 0);
         cpuPanel.add(delayPanel, gbc);
-        cdelay = new JLabel();
+        JLabel cdelay = new JLabel();
         Font cdelayFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, cdelay.getFont());
         if (cdelayFont != null) cdelay.setFont(cdelayFont);
         cdelay.setText("CPU delay ms");
@@ -449,7 +435,7 @@ public class UXManagerAW extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 0, 0, 10);
         delayPanel.add(delay, gbc);
-        sperator = new JSeparator();
+        JSeparator sperator = new JSeparator();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -466,7 +452,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 3;
         gbc.weightx = 0.1;
         cpuPanel.add(pcValue, gbc);
-        status = new JLabel();
+        JLabel status = new JLabel();
         Font statusFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, status.getFont());
         if (statusFont != null) status.setFont(statusFont);
         status.setText("STATUS");
@@ -476,7 +462,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridheight = 2;
         gbc.weightx = 0.1;
         cpuPanel.add(status, gbc);
-        ac = new JLabel();
+        JLabel ac = new JLabel();
         Font acFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, ac.getFont());
         if (acFont != null) ac.setFont(acFont);
         ac.setText("AC");
@@ -495,7 +481,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridheight = 2;
         gbc.weightx = 0.1;
         cpuPanel.add(statusValue, gbc);
-        memoryPane = new JScrollPane();
+        JScrollPane memoryPane = new JScrollPane();
         memoryPane.setBackground(new Color(-1));
         memoryPane.setMinimumSize(new Dimension(200, 350));
         memoryPane.setPreferredSize(new Dimension(200, 350));
@@ -510,7 +496,7 @@ public class UXManagerAW extends JFrame {
         if (memoryFont != null) memory.setFont(memoryFont);
         memory.setPreferredSize(new Dimension(170, 300));
         memoryPane.setViewportView(memory);
-        consolePane = new JScrollPane();
+        JScrollPane consolePane = new JScrollPane();
         consolePane.setAutoscrolls(true);
         consolePane.setBackground(new Color(-1));
         Font consolePaneFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, consolePane.getFont());
@@ -558,11 +544,20 @@ public class UXManagerAW extends JFrame {
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 1;
-        gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 10, 0, 0);
         main.add(current, gbc);
-        filePane = new JScrollPane();
+        currentInstruction = new JLabel();
+        currentInstruction.setText(instructionString);
+        Font currentInstructionFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, execute.getFont());
+        if (currentInstructionFont != null) currentInstruction.setFont(currentInstructionFont);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 5;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 10, 0, 0);
+        main.add(currentInstruction, gbc);
+        JScrollPane filePane = new JScrollPane();
         filePane.setAutoscrolls(true);
         filePane.setBackground(new Color(-1));
         filePane.setMinimumSize(new Dimension(200, 400));
@@ -591,7 +586,7 @@ public class UXManagerAW extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(0, 10, 0, 0);
         main.add(path, gbc);
-        readyPane = new JScrollPane();
+        JScrollPane readyPane = new JScrollPane();
         readyPane.setBackground(new Color(-1));
         readyPane.setMinimumSize(new Dimension(400, 400));
         readyPane.setPreferredSize(new Dimension(400, 400));
@@ -607,7 +602,7 @@ public class UXManagerAW extends JFrame {
         ready.setMinimumSize(new Dimension(370, 350));
         ready.setPreferredSize(new Dimension(370, 350));
         readyPane.setViewportView(ready);
-        waitPane = new JScrollPane();
+        JScrollPane waitPane = new JScrollPane();
         waitPane.setBackground(new Color(-1));
         waitPane.setMinimumSize(new Dimension(300, 400));
         waitPane.setPreferredSize(new Dimension(300, 400));
@@ -623,7 +618,7 @@ public class UXManagerAW extends JFrame {
         wait.setMinimumSize(new Dimension(270, 350));
         wait.setPreferredSize(new Dimension(270, 350));
         waitPane.setViewportView(wait);
-        currentProcess = new JTabbedPane();
+        JTabbedPane currentProcess = new JTabbedPane();
         Font currentProcessFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, currentProcess.getFont());
         if (currentProcessFont != null) currentProcess.setFont(currentProcessFont);
         gbc = new GridBagConstraints();
@@ -634,24 +629,24 @@ public class UXManagerAW extends JFrame {
         currentProcess.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<CURRENT PROCESS>", TitledBorder.LEFT, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 20, currentProcess.getFont())));
         currentProcess.setMaximumSize(new Dimension(400, 300));
         currentProcess.setPreferredSize(new Dimension(400, 300));
-        codePane = new JScrollPane();
+        JScrollPane codePane = new JScrollPane();
         currentProcess.addTab("CODE", codePane);
         Font codeLineFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, codeLine.getFont());
         if (codeLineFont != null) codeLine.setFont(codeLineFont);
         codePane.setViewportView(codeLine);
-        dataPane = new JScrollPane();
+        JScrollPane dataPane = new JScrollPane();
         currentProcess.addTab("DATA", dataPane);
         Font dataLineFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, codeLine.getFont());
         if (dataLineFont != null) dataLine.setFont(dataLineFont);
         dataLine.setBackground(new Color(-1));
         dataPane.setViewportView(dataLine);
-        stackPane = new JScrollPane();
+        JScrollPane stackPane = new JScrollPane();
         currentProcess.addTab("STACK", stackPane);
         Font localsFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, codeLine.getFont());
         if (localsFont != null) locals.setFont(localsFont);
         locals.setBackground(new Color(-1));
         stackPane.setViewportView(locals);
-        heapPane = new JScrollPane();
+        JScrollPane heapPane = new JScrollPane();
         currentProcess.addTab("HEAP", heapPane);
         Font instancesFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, codeLine.getFont());
         if (instancesFont != null) instances.setFont(instancesFont);
@@ -676,13 +671,6 @@ public class UXManagerAW extends JFrame {
             }
         }
         return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
-    }
-
-    /**
-     * @noinspection ALL
-     */
-    public JComponent $$$getRootComponent$$$() {
-        return main;
     }
 
 }
