@@ -531,6 +531,7 @@ public class UXManagerAW extends JFrame {
         console.setMinimumSize(new Dimension(550, 270));
         console.setPreferredSize(new Dimension(10, 270));
         console.setVerifyInputWhenFocusTarget(true);
+        console.setEditable(false);
         consolePane.setViewportView(console);
         Font executeFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, execute.getFont());
         if (executeFont != null) execute.setFont(executeFont);
