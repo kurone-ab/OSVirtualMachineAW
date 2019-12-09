@@ -27,7 +27,7 @@ class ControlUnit {
     }
 
     void execute() {
-        System.out.println("current instruction: " + instruction);
+//        System.out.println("current instruction: " + instruction);
         switch (instruction) {
             case LDA:
                 LDA();
@@ -113,7 +113,7 @@ class ControlUnit {
         MAR.data = IR.data & 0x00ffffff;
         mmu.dataFetch(MemoryManagementUnit.ABNORMAL);
         AC.data = MBR.data;
-        System.out.println("accumulator value: " + AC.data);
+//        System.out.println("accumulator value: " + AC.data);
     }
 
     private void NEW() {
@@ -128,14 +128,14 @@ class ControlUnit {
 
     private void LDPI() {
         AC.data = IR.data & 0x00ffffff;
-        System.out.println("accumulator value: " + AC.data);
+//        System.out.println("accumulator value: " + AC.data);
     }
 
     private void LDA() {
         MAR.data = IR.data & 0x00ffffff;
         mmu.dataFetch();
         AC.data = MBR.data;
-        System.out.println("accumulator value: " + AC.data);
+//        System.out.println("accumulator value: " + AC.data);
     }
 
 
@@ -143,21 +143,21 @@ class ControlUnit {
         MAR.data = IR.data & 0x00ffffff;
         MBR.data = AC.data;
         mmu.dataStore();
-        System.out.println("accumulator value: " + AC.data);
+//        System.out.println("accumulator value: " + AC.data);
     }
 
     private void ADD() {
         MAR.data = IR.data & 0x00ffffff;
         mmu.dataFetch();
         CentralProcessingUnit.alu.ADD();
-        System.out.println("accumulator value: " + AC.data);
+//        System.out.println("accumulator value: " + AC.data);
     }
 
     private void SUB() {
         MAR.data = IR.data & 0x00ffffff;
         mmu.dataFetch();
         CentralProcessingUnit.alu.SUB();
-        System.out.println("accumulator value: " + AC.data);
+//        System.out.println("accumulator value: " + AC.data);
     }
 
     private void MUL() {

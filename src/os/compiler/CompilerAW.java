@@ -2,6 +2,7 @@ package os.compiler;
 
 import global.*;
 import os.FileManagerAW;
+import os.InterruptVectorTable;
 import os.OperatingSystem;
 import pc.mainboard.cpu.CentralProcessingUnit;
 
@@ -12,10 +13,11 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static os.InterruptVectorTable.*;
+
 public class CompilerAW {
 	public static final int instruction_bit = 24, segment_bit = 20, correction_bit = 12, parameter_bit = 16,
-			heapSegment = 2, stackSegment = 1, dataSegment = 0, constant = 4, abnormal = 5,
-	printID = 2, inputID = 3, sendID = 4, receiveID = 5;
+			heapSegment = 2, stackSegment = 1, dataSegment = 0, constant = 4, abnormal = 5;
 	private static final String allocate = "allocate", staticData = "static", assignment = "assn",
 	imports = "import", function = "func", use = "use", as = "as", annotation = "/--", returns = "return",
 	ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==", self = "self",
@@ -164,7 +166,10 @@ public class CompilerAW {
 							int pos = code.size();
 							if (this.previousMain && this.isMain) pos += 1;
 							this.functions.put(fn_name, pos);
-						} else position = code.size() + 1;
+						} else {
+							this.previousMain = false;
+							position = code.size() + 1;
+						}
 						line = this.scanner.nextLine();
 						matcher = parameter_pattern.matcher(next);
 						if (matcher.find()) {
@@ -178,13 +183,19 @@ public class CompilerAW {
 						int startLine = 0;
 						ArrayList<Integer> condition = new ArrayList<>();
 						while (!line.contains(returns) && !line.contains(exit)) {
+							if (line.isEmpty()) {
+								line = this.scanner.nextLine();
+								break;
+							}
 							tokenizer = new StringTokenizer(line);
 							String store_target = tokenizer.nextToken();// TODO: 2019-12-01 first check if or while
 							if (store_target.equals("}")) {
 								if (statement == null) throw new IllegalFormatException();
 								instruction = CentralProcessingUnit.Instruction.JMP.ordinal() << instruction_bit;
 								if (!statement.equals(ifs)) code.addAll(condition);
-								instruction += code.size() + 1;
+								int pos = code.size();
+								if (this.previousMain && this.isMain) pos += 1;
+								instruction += pos;
 								code.add(startLine, instruction);
 							} else if (store_target.equals(use)) {
 								String module = tokenizer.nextToken();
@@ -552,13 +563,15 @@ public class CompilerAW {
 		String operand1 = tokenizer.nextToken();
 		String operator = tokenizer.nextToken();
 		String operand2 = tokenizer.nextToken();
+		int pos = code.size()+2;
+		if (this.previousMain) pos++;
 		switch (operator) {
 			case equal:
 				this.loadClassify(operand1, local_variables, local_instances);
 				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(),
 						CentralProcessingUnit.Instruction.ADD.ordinal(), operand2, local_variables, local_instances);
 				int instruction = CentralProcessingUnit.Instruction.JSZ.ordinal() << instruction_bit;
-				instruction += code.size() + 3;
+				instruction += pos;
 				code.add(instruction);
 				break;
 			case big:
@@ -566,7 +579,7 @@ public class CompilerAW {
 				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(),
 						CentralProcessingUnit.Instruction.ADD.ordinal(), operand1, local_variables, local_instances);
 				instruction = CentralProcessingUnit.Instruction.JSN.ordinal() << instruction_bit;
-				instruction += code.size() + 3;
+				instruction += pos;
 				code.add(instruction);
 				break;
 			case small:
@@ -574,7 +587,7 @@ public class CompilerAW {
 				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(),
 						CentralProcessingUnit.Instruction.ADD.ordinal(), operand2, local_variables, local_instances);
 				instruction = CentralProcessingUnit.Instruction.JSN.ordinal() << instruction_bit;
-				instruction += code.size() + 3;
+				instruction += pos;
 				code.add(instruction);
 				break;
 		}

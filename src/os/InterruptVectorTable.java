@@ -1,5 +1,8 @@
 package os;
 
+import org.jetbrains.annotations.NotNull;
+import os.compiler.CompilerAW;
+
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -9,11 +12,50 @@ import static pc.mainboard.cpu.Register.HSR;
 
 public class InterruptVectorTable {
 	static final Hashtable<Integer, InterruptServiceRoutine> ivt = new Hashtable<>();
+	public static final int haltID = 0, timeExpiredID = 1, printID = 2, inputID = 3, sendID = 4, receiveID = 5;
 
 	public InterruptVectorTable() {
-		ivt.put(0, (pid, sp, address, csr, hsr) -> processManagerAW.halt());//halt
-		ivt.put(1, (pid, sp, address, csr, hsr) -> processManagerAW.contextSwitch(ProcessState.READY));//time expired
-		ivt.put(2, (pid, sp, address, csr, hsr) -> {
+		ivt.put(haltID, new HaltInterruptServiceRoutine());//halt
+		ivt.put(timeExpiredID, new TimeInterruptServiceRoutine());//time expired
+		ivt.put(printID, new PrintInterruptServiceRoutine());//print
+		ivt.put(inputID, new InputInterruptServiceRoutine());//input
+	}
+	private static class HaltInterruptServiceRoutine extends InterruptServiceRoutine{
+		@Override
+		void set(int pid, int sp, int address, int csr, int hsr) {
+			super.set(pid, sp, address, csr, hsr);
+			this.priority = 10;
+		}
+
+		@Override
+		void handle() {
+			processManagerAW.halt();
+		}
+	}
+
+	private static class TimeInterruptServiceRoutine extends InterruptServiceRoutine{
+		@Override
+		void set(int pid, int sp, int address, int csr, int hsr) {
+			super.set(pid, sp, address, csr, hsr);
+			this.priority = 11;
+		}
+
+		@Override
+		void handle() {
+			processManagerAW.contextSwitch(ProcessState.READY);
+		}
+	}
+
+	private static class PrintInterruptServiceRoutine extends InterruptServiceRoutine{
+
+		@Override
+		void set(int pid, int sp, int address, int csr, int hsr) {
+			super.set(pid, sp, address, csr, hsr);
+			this.priority = 2;
+		}
+
+		@Override
+		void handle() {
 			processManagerAW.enWaitQueue();
 			processManagerAW.contextSwitch(ProcessState.WAIT);
 			Thread thread = new Thread(()->{
@@ -21,19 +63,30 @@ public class InterruptVectorTable {
 				processManagerAW.isrFinished(pid);
 			});
 			thread.start();
-		});//print
-		ivt.put(3, (pid, sp, address, csr, hsr) -> {
+		}
+
+	}
+
+	private static class InputInterruptServiceRoutine extends InterruptServiceRoutine{
+
+		@Override
+		void set(int pid, int sp, int address, int csr, int hsr) {
+			super.set(pid, sp, address, csr, hsr);
+			this.priority = 2;
+		}
+
+		@Override
+		void handle() {
 			processManagerAW.enWaitQueue();
 			processManagerAW.contextSwitch(ProcessState.WAIT);
+			OperatingSystem.deviceManagerAW.setConsoleEditable(true);
 			Thread thread = new Thread(()->{
-				OperatingSystem.deviceManagerAW.setConsoleEditable(true);
 				OperatingSystem.consoleDriver.input(sp, address, csr, hsr);
 				OperatingSystem.deviceManagerAW.setConsoleEditable(false);
 				processManagerAW.isrFinished(pid);
 			});
 			thread.start();
-		});//input
-		ivt.put(4, (pid, sp, address, csr, hsr) -> processManagerAW.contextSwitch(ProcessState.READY));//send
-		ivt.put(5, (pid, sp, address, csr, hsr) -> processManagerAW.contextSwitch(ProcessState.READY));//receive
+		}
+
 	}
 }

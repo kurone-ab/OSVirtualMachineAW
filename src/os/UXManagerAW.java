@@ -124,6 +124,11 @@ public class UXManagerAW extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.pack();
         this.setVisible(true);
+        try {
+            Loader.load(OperatingSystem.fileManagerAW.getFile("system/system.awx"), 0);
+        } catch (IllegalFileFormatException e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateRegisters() {

@@ -1,0 +1,14 @@
+allocate 2
+
+func loop() {
+
+    return
+}
+
+func main() {
+    a = 1
+    while a == 1 {
+        a = 1
+    }
+    exit
+}
