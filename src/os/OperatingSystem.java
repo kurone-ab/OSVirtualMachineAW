@@ -1,13 +1,13 @@
 package os;
 
 public class OperatingSystem {
-	static final long TIME_SLICE = 1000000000/*15000000-15ms*/;
+	static final long TIME_SLICE = 150000000/*15000000-15ms*/;
 	static ProcessManagerAW processManagerAW;
 	static MemoryManagerAW memoryManagerAW;
 	public static FileManagerAW fileManagerAW;
 	static DeviceManagerAW deviceManagerAW;
 	static UXManagerAW uxManagerAW;
-	static InterruptVectorTable interruptVectorTable;
+	public static InterruptVectorTable interruptVectorTable;
 	static Driver consoleDriver, networkDriver;
 
 	public void on(){

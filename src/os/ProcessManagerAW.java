@@ -4,6 +4,8 @@ import os.compiler.CompilerAW;
 import pc.mainboard.MainBoard;
 import pc.mainboard.cpu.Register;
 
+import java.lang.management.OperatingSystemMXBean;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 
@@ -74,10 +76,10 @@ public class ProcessManagerAW {
                 if (interrupted || moreInterrupt) {// TODO: 2019-11-12 make interrupt
                     int interruptID = Register.ITR.data >>> CompilerAW.instruction_bit;
                     int interruptData = Register.ITR.data & 0x00ffffff;
-                    System.out.println("interrupt id: " + interruptID);
+                    System.out.println("data"+interruptData);
                     Register.STATUS.data &= 0x11111110;
                     Register.ITR.data = 0;
-                    InterruptServiceRoutine isr = InterruptVectorTable.ivt.get(interruptID);
+                    InterruptServiceRoutine isr = OperatingSystem.interruptVectorTable.getInterrupt(interruptID);
                     isr.set(this.currentProcess.pid, Register.SP.data, interruptData, Register.CSR.data, Register.HSR.data);
                     if (interrupted && moreInterrupt) OperatingSystem.deviceManagerAW.putInterrupt(isr);
                     if (moreInterrupt) isr = OperatingSystem.deviceManagerAW.getInterrupt();
@@ -85,7 +87,7 @@ public class ProcessManagerAW {
                     start = System.nanoTime();
                 }
                 if ((System.nanoTime() - start) > OperatingSystem.TIME_SLICE) {
-                    OperatingSystem.deviceManagerAW.putInterrupt(InterruptVectorTable.ivt.get(InterruptVectorTable.timeExpiredID));
+                    OperatingSystem.deviceManagerAW.putInterrupt(OperatingSystem.interruptVectorTable.getInterrupt(InterruptVectorTable.timeExpiredID));
                 }
             }
             OperatingSystem.uxManagerAW.updateProcess(null);
@@ -100,11 +102,13 @@ public class ProcessManagerAW {
     }
 
     public synchronized void isrFinished(int pid) {
-        this.ready.offer(wait.pull(pid));
-        if (this.currentProcess == null) {
-            this.ready.nextProcess();
-            this.currentProcess.ps = ProcessState.RUN;
-        }
+        ProcessControlBlock pcb = this.wait.pull(pid);
+        pcb.ps = ProcessState.READY;
+        this.ready.offer(pcb);
+    }
+
+    public synchronized void waitOffer(){
+        this.wait.offer(this.currentProcess);
     }
 
     public void setDelay(int delay) {
@@ -125,7 +129,7 @@ public class ProcessManagerAW {
         return this.clockState;
     }
 
-    void contextSwitch(ProcessState processState) {
+    synchronized void contextSwitch(ProcessState processState) {
         ready.increasePriority();
         if (ready.isEmpty() && processState == ProcessState.TERMINATE) {
             this.currentProcess.ps = processState;
@@ -142,17 +146,10 @@ public class ProcessManagerAW {
         }
         this.ready.nextProcess();
         //context load
-        if (this.currentProcess != null) {
-            this.currentProcess.ps = ProcessState.RUN;
-            for (int i = 0; i < registers.length; i++)
-                registers[i].data = this.currentProcess.context[i];
-        }
+        this.currentProcess.ps = ProcessState.RUN;
+        for (int i = 0; i < registers.length; i++)
+            registers[i].data = this.currentProcess.context[i];
         OperatingSystem.uxManagerAW.updateReadyQueue(this.ready);
-        OperatingSystem.uxManagerAW.updateWaitQueue(this.wait);
-    }
-
-    void enWaitQueue() {
-        if (this.currentProcess != null) wait.offer(this.currentProcess);
         OperatingSystem.uxManagerAW.updateWaitQueue(this.wait);
     }
 
@@ -160,7 +157,7 @@ public class ProcessManagerAW {
         return (Register.STATUS.data & 0x00000001) != 0;
     }
 
-    void halt() {// TODO: 2019-12-08 please change
+    void halt() {
         OperatingSystem.memoryManagerAW.unload(this.currentProcess.pid);
         this.contextSwitch(ProcessState.TERMINATE);
     }

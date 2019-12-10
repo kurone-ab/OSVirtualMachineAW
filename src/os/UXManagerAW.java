@@ -96,9 +96,9 @@ public class UXManagerAW extends JFrame {
             }
         });
         this.delay = new JSpinner();
-        this.delay.setModel(new SpinnerNumberModel(0, 0, 1000, 100));
+        this.delay.setModel(new SpinnerNumberModel(50, 50, 5000, 100));
         this.delay.addChangeListener((e) -> OperatingSystem.processManagerAW.setDelay((Integer) this.delay.getValue()));
-        this.delay.setValue(500);
+        this.delay.setValue(100);
 
         this.console = OperatingSystem.deviceManagerAW.getConsoleAW();
 
@@ -161,10 +161,10 @@ public class UXManagerAW extends JFrame {
     }
 
     public void updateProcess(ProcessAW processAW) {
-        this.codeListModel.clear();
-        this.dataListModel.clear();
-        this.arListModel.clear();
-        this.instanceListModel.clear();
+        this.codeListModel.removeAllElements();
+        this.dataListModel.removeAllElements();
+        this.arListModel.removeAllElements();
+        this.instanceListModel.removeAllElements();
         if (processAW != null) {
             this.current.setText(currentString + processAW.pid);
             for (int i : processAW.code) this.codeListModel.addElement(i);
@@ -506,7 +506,8 @@ public class UXManagerAW extends JFrame {
         consolePane.setBackground(new Color(-1));
         Font consolePaneFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, consolePane.getFont());
         if (consolePaneFont != null) consolePane.setFont(consolePaneFont);
-        consolePane.setMinimumSize(new Dimension(600, 300));
+        consolePane.setMinimumSize(new Dimension(600, 310));
+        consolePane.setPreferredSize(new Dimension(600, 310));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -518,16 +519,16 @@ public class UXManagerAW extends JFrame {
         console.setBackground(new Color(-1));
         Font consoleFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, console.getFont());
         if (consoleFont != null) console.setFont(consoleFont);
-        console.setLineWrap(false);
-        console.setMinimumSize(new Dimension(550, 270));
-        console.setPreferredSize(new Dimension(10, 270));
-        console.setVerifyInputWhenFocusTarget(true);
-        console.setEditable(false);
-        consolePane.setViewportView(console);
+        this.console.setLineWrap(true);
+        this.console.setMinimumSize(new Dimension(550, 270));
+        this.console.setPreferredSize(new Dimension(550, 270));
+        this.console.setVerifyInputWhenFocusTarget(true);
+//        this.console.setEditable(false);
+        consolePane.setViewportView(this.console);
         Font executeFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, execute.getFont());
         if (executeFont != null) execute.setFont(executeFont);
         execute.setText("EXECUTE");
-        Font pauseFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, execute.getFont());
+        Font pauseFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, pause.getFont());
         if (pauseFont != null) pause.setFont(pauseFont);
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
@@ -544,7 +545,7 @@ public class UXManagerAW extends JFrame {
         main.add(pause, gbc);
         current = new JLabel();
         current.setText(currentString);
-        Font currentFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, execute.getFont());
+        Font currentFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, current.getFont());
         if (currentFont != null) current.setFont(currentFont);
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
@@ -554,7 +555,7 @@ public class UXManagerAW extends JFrame {
         main.add(current, gbc);
         currentInstruction = new JLabel();
         currentInstruction.setText(instructionString);
-        Font currentInstructionFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, execute.getFont());
+        Font currentInstructionFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, currentInstruction.getFont());
         if (currentInstructionFont != null) currentInstruction.setFont(currentInstructionFont);
         gbc = new GridBagConstraints();
         gbc.gridx = 5;
@@ -601,7 +602,7 @@ public class UXManagerAW extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         main.add(readyPane, gbc);
         readyPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<READY QUEUE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 20, readyPane.getFont())));
-        Font readyFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, fileTree.getFont());
+        Font readyFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, ready.getFont());
         if (readyFont != null) ready.setFont(readyFont);
         ready.setBackground(new Color(-1));
         ready.setMinimumSize(new Dimension(370, 350));
@@ -617,11 +618,11 @@ public class UXManagerAW extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         main.add(waitPane, gbc);
         waitPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<WAIT QUEUE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 20, waitPane.getFont())));
-        Font waitFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, fileTree.getFont());
+        Font waitFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, wait.getFont());
         if (waitFont != null) wait.setFont(waitFont);
         wait.setBackground(new Color(-1));
         wait.setMinimumSize(new Dimension(270, 350));
-        wait.setPreferredSize(new Dimension(270, 350));
+        wait.setPreferredSize(new Dimension(280, 350));
         waitPane.setViewportView(wait);
         JTabbedPane currentProcess = new JTabbedPane();
         Font currentProcessFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, currentProcess.getFont());

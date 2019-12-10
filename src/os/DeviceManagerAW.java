@@ -11,6 +11,7 @@ import java.util.PriorityQueue;
 
 public class DeviceManagerAW {
     private PriorityQueue<InterruptServiceRoutine> ioQueue = new PriorityQueue<>();// TODO: 2019-12-09 not interrupt id change to isr
+    boolean alreadyInput;
 
     boolean hasMoreInterrupt() {
         return !this.ioQueue.isEmpty();

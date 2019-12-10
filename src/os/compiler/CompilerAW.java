@@ -21,7 +21,7 @@ public class CompilerAW {
 	private static final String allocate = "allocate", staticData = "static", assignment = "assn",
 	imports = "import", function = "func", use = "use", as = "as", annotation = "/--", returns = "return",
 	ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==", self = "self",
-	print = "print", input = "input", send = "send", receive = "receive";
+	print = "print", input = "input", send = "send", receive = "receive", connect = "connect", disconnect = "disconnect";
 	private static final Pattern number_pattern = Pattern.compile("[0-9\\-]+");
 	private static final Pattern alpha_pattern = Pattern.compile("[a-zA-Z]+");
 	private static final Pattern fnc_pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*\\.?)+\\([a-zA-Z\\-0-9_, ]*\\)");
@@ -191,10 +191,10 @@ public class CompilerAW {
 							String store_target = tokenizer.nextToken();// TODO: 2019-12-01 first check if or while
 							if (store_target.equals("}")) {
 								if (statement == null) throw new IllegalFormatException();
+								if (statement.equals(whiles)) code.addAll(condition);
 								instruction = CentralProcessingUnit.Instruction.JMP.ordinal() << instruction_bit;
-								if (!statement.equals(ifs)) code.addAll(condition);
 								int pos = code.size();
-								if (this.previousMain && this.isMain) pos += 1;
+								if (this.previousMain && this.isMain) pos++;
 								instruction += pos;
 								code.add(startLine, instruction);
 							} else if (store_target.equals(use)) {
@@ -209,6 +209,14 @@ public class CompilerAW {
 								this.compileInterruptCase(tokenizer, local_variables, local_instances, sendID);
 							}else if (store_target.equals(receive)) {//receive
 								this.compileInterruptCase(tokenizer, local_variables, local_instances, receiveID);
+							}else if (store_target.equals(connect)) {//connect
+								instruction = CentralProcessingUnit.Instruction.ITR.ordinal() << instruction_bit;
+								instruction += connectID;
+								code.add(instruction);
+							}else if (store_target.equals(disconnect)) {//disconnect
+								instruction = CentralProcessingUnit.Instruction.ITR.ordinal() << instruction_bit;
+								instruction += disconnectID;
+								code.add(instruction);
 							} else if (store_target.equals(ifs)) {
 								statement = ifs;
 								this.parseStatement(tokenizer, local_variables, local_instances);
@@ -267,7 +275,6 @@ public class CompilerAW {
 						instruction = CentralProcessingUnit.Instruction.FNC.ordinal() << instruction_bit;
 						instruction += this.local_size.get(fn_name);
 						code.add(position, instruction);
-						this.previousMain = false;
 					}
 					break;
 				case annotation:
@@ -563,15 +570,14 @@ public class CompilerAW {
 		String operand1 = tokenizer.nextToken();
 		String operator = tokenizer.nextToken();
 		String operand2 = tokenizer.nextToken();
-		int pos = code.size()+2;
-		if (this.previousMain) pos++;
+		int pos = this.previousMain ? 3 : 4;
 		switch (operator) {
 			case equal:
 				this.loadClassify(operand1, local_variables, local_instances);
 				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(),
 						CentralProcessingUnit.Instruction.ADD.ordinal(), operand2, local_variables, local_instances);
 				int instruction = CentralProcessingUnit.Instruction.JSZ.ordinal() << instruction_bit;
-				instruction += pos;
+				instruction += code.size() + pos;
 				code.add(instruction);
 				break;
 			case big:
@@ -579,7 +585,7 @@ public class CompilerAW {
 				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(),
 						CentralProcessingUnit.Instruction.ADD.ordinal(), operand1, local_variables, local_instances);
 				instruction = CentralProcessingUnit.Instruction.JSN.ordinal() << instruction_bit;
-				instruction += pos;
+				instruction += code.size() + pos;
 				code.add(instruction);
 				break;
 			case small:
@@ -587,7 +593,7 @@ public class CompilerAW {
 				this.computeOperand(CentralProcessingUnit.Instruction.SUB.ordinal(),
 						CentralProcessingUnit.Instruction.ADD.ordinal(), operand2, local_variables, local_instances);
 				instruction = CentralProcessingUnit.Instruction.JSN.ordinal() << instruction_bit;
-				instruction += pos;
+				instruction += code.size() + pos;
 				code.add(instruction);
 				break;
 		}
@@ -651,5 +657,4 @@ public class CompilerAW {
 		instruction += id;
 		code.add(instruction);
 	}
-
 }

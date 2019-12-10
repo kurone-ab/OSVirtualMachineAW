@@ -1,18 +1,21 @@
 package pc.io;
 
-import os.DeviceType;
-import os.Driver;
-import os.IODevice;
+import os.*;
 import pc.mainboard.MainBoard;
 
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.StringTokenizer;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ConsoleAW extends JTextArea implements IODevice {
-	private final Object lock = new Object();
+	private final ReentrantLock lock = new ReentrantLock(true);
 	private final ConsoleDriver consoleDriver = new ConsoleDriver();
+	private final LinkedList<int[]> inputQueue = new LinkedList<>();
 	private int buffer;
 
 	public ConsoleAW() {
@@ -32,38 +35,55 @@ public class ConsoleAW extends JTextArea implements IODevice {
 	private class ConsoleDriver implements Driver{
 
 		@Override
-		public void input(int sp, int address, int csr, int hsr) {
-			synchronized (lock){
-				try {
-					lock.wait();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				MainBoard.mmu.dataStore(buffer, address, sp, hsr, csr);
+		public void input(int pid, int sp, int address, int csr, int hsr) {
+			try{
+				lock.lock();
+				inputQueue.add(new int[]{pid, sp, address, csr, hsr});
+			}finally {
+				lock.unlock();
 			}
 		}
 
 		@Override
-		public void output(int sp, int address, int csr, int hsr) {
+		public void output(int pid, int sp, int address, int csr, int hsr) {
 			try {
-				setText(getText()+MainBoard.mmu.dataFetch(address, sp, hsr, csr) +"\n");
-			} catch (IllegalAccessException ignored) {
+				lock.lock();
+				setText(getText() + MainBoard.mmu.dataFetch(address, sp, csr, hsr) + "\n");
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} finally {
+				lock.unlock();
 			}
+		}
+
+		@Override
+		public void connect() {
+
+		}
+
+		@Override
+		public void disconnect() {
+
 		}
 	}
 
 	private class InputListener extends KeyAdapter {
 		@Override
 		public void keyReleased(KeyEvent e) {
-			if (e.getKeyCode()==KeyEvent.VK_ENTER){
-				synchronized (lock){
-					String text = getText();
-					StringTokenizer tokenizer = new StringTokenizer(text, "\n");
-					while (tokenizer.countTokens()>1) tokenizer.nextToken();
-					String value = tokenizer.nextToken();
-					if (value.matches("[\\-0-9]+"))
-						buffer = Integer.parseInt(value);
-					lock.notify();
+			if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+				String text = getText();
+				StringTokenizer tokenizer = new StringTokenizer(text, "\n");
+				while (tokenizer.countTokens() > 1) tokenizer.nextToken();
+				String value = tokenizer.nextToken();
+				if (value.matches("[\\-0-9]+"))
+					buffer = Integer.parseInt(value);
+				if (!inputQueue.isEmpty()) {
+					int[] parameters = inputQueue.pop();
+					MainBoard.mmu.dataStore(buffer, parameters[2], parameters[1], parameters[3], parameters[4]);
+					InterruptServiceRoutine isr = OperatingSystem.interruptVectorTable.getInterrupt(InterruptVectorTable.finishID);
+					isr.set(parameters[0], 0, 0, 0, 0);
+					isr.handle();
+					if (inputQueue.isEmpty()) setEditable(false);
 				}
 			}
 		}

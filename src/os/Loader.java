@@ -17,7 +17,6 @@ public class Loader {
 				executableAW.code, executableAW.data, executableAW.size,
 				executableAW.startLine);
 		OperatingSystem.memoryManagerAW.load(processAW, priority);
-		System.out.println("process load");
 	}
 
 	public synchronized static void load(FileManagerAW.FileAW<String> awx, int priority){

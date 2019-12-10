@@ -39,7 +39,7 @@ public class MemoryManagementUnit {
         }
     }
 
-    public int dataFetch(int address, int sp, int hsr, int csr) throws IllegalAccessException {
+    public int dataFetch(int address, int sp, int csr, int hsr) throws IllegalAccessException {
         int segment = (address >>> CompilerAW.segment_bit) & 0x0000000f;
         int correction = (address >>> CompilerAW.correction_bit) & 0x000000ff;
         address = address & 0x00000fff;
@@ -89,7 +89,7 @@ public class MemoryManagementUnit {
         }
     }
 
-    public void dataStore(int data, int address, int sp, int hsr, int csr) {
+    public void dataStore(int data, int address, int sp, int csr, int hsr) {
         int segment = (address >>> CompilerAW.segment_bit) & 0x0000000f;
         int correction = (address >>> CompilerAW.correction_bit) & 0x000000ff;
         address = address & 0x00000fff;
