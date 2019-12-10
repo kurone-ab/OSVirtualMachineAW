@@ -20,7 +20,7 @@ public class CompilerAW {
 			heapSegment = 2, stackSegment = 1, dataSegment = 0, constant = 4, abnormal = 5;
 	private static final String allocate = "allocate", staticData = "static", assignment = "assn",
 	imports = "import", function = "func", use = "use", as = "as", annotation = "/--", returns = "return",
-	ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==", self = "self",
+	ifs = "if", whiles = "while", exit = "exit", big = ">", small = "<", equal = "==", self = "self",
 	print = "print", input = "input", send = "send", receive = "receive", connect = "connect", disconnect = "disconnect";
 	private static final Pattern number_pattern = Pattern.compile("-?[0-9]+");
 	private static final Pattern alpha_pattern = Pattern.compile("[a-zA-Z]+");

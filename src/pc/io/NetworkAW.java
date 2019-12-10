@@ -78,7 +78,7 @@ public class NetworkAW implements IODevice {
         @Override
         public void connect() {
             try {
-                socket = new Socket("localhost", 16748);
+                socket = new Socket("13.209.88.158", 8080);
                 outputStream = socket.getOutputStream();
                 inputStream = socket.getInputStream();
             } catch (IOException e) {

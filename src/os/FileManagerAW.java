@@ -18,32 +18,21 @@ public class FileManagerAW {
     }
 
     public void on() {
+        this.baseLoad("exe/loop.awx", "system/system.awx");
+        this.baseLoad("exe/main.awx", "exe/project1/main.awx");
+        this.baseLoad("exe/sub.awx", "exe/project1/sub.awx");
+        this.baseLoad("exe/main2.awx", "exe/project2/main.awx");
+        this.baseLoad("exe/calculator.awx", "exe/calculator.awx");
+    }
+
+    public void baseLoad(String exist, String make) {
         try {
-            Scanner scanner;
-            StringBuilder builder;
-            scanner = new Scanner(new File("exe/loop.awx"));
-            builder = new StringBuilder();
-            while (scanner.hasNextLine())
-                builder.append(scanner.nextLine()).append("\r\n");
-            this.loadFile("system/system.awx", builder.toString());
-            scanner = new Scanner(new File("exe/main.awx"));
-            builder = new StringBuilder();
+            Scanner scanner = new Scanner(new File(exist));
+            StringBuilder builder = new StringBuilder();
             while (scanner.hasNextLine()) {
                 builder.append(scanner.nextLine()).append("\r\n");
             }
-            this.loadFile("exe/project1/main.awx", builder.toString());
-            scanner = new Scanner(new File("exe/sub.awx"));
-            builder = new StringBuilder();
-            while (scanner.hasNextLine()) {
-                builder.append(scanner.nextLine()).append("\r\n");
-            }
-            this.loadFile("exe/project1/sub.awx", builder.toString());
-            scanner = new Scanner(new File("exe/main2.awx"));
-            builder = new StringBuilder();
-            while (scanner.hasNextLine()) {
-                builder.append(scanner.nextLine()).append("\r\n");
-            }
-            this.loadFile("exe/project2/main.awx", builder.toString());
+            this.loadFile(make, builder.toString());
         } catch (FileNotFoundException | IllegalFileFormatException e) {
             e.printStackTrace();
         }

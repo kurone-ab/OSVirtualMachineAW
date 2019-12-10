@@ -37,11 +37,11 @@ func test() {
 }
 
 func main() {
-    connect
+    /-- connect
     z = test()
     f(z)
-    send a
-    receive y
+    /-- send a
+    /-- receive y
     print y
     /-- disconnect
     exit

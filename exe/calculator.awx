@@ -1,0 +1,12 @@
+allocate 10
+
+func main() {
+    a = 0
+    /-- b = 17
+    /-- b = b + 53
+    /-- b = b + 30
+    /-- b = b + 250
+    /-- b = b + 1000
+    print 1350
+    exit
+}
