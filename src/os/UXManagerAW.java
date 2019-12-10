@@ -19,6 +19,7 @@ import java.util.Collection;
 public class UXManagerAW extends JFrame {
     private static final String pathString = "PATH: ", pauseString = "||", continueString = ">",
             currentString = "CURRENT PROCESS ID: ", instructionString = "CURRENT INSTRUCTION: ";
+    private static final Font baseFont = new Font("JetBrains Mono", Font.PLAIN, 15);
     private JPanel main;
     private JTree fileTree;
     private JLabel marValue;
@@ -144,7 +145,7 @@ public class UXManagerAW extends JFrame {
         this.statusValue.setText(String.valueOf(Register.STATUS.data));
         this.acValue.setText(String.valueOf(Register.AC.data));
         this.itrValue.setText(String.valueOf(Register.ITR.data));
-        this.currentInstruction.setText(instructionString+CentralProcessingUnit.Instruction.values()[inst].name());
+        this.currentInstruction.setText(instructionString + CentralProcessingUnit.Instruction.values()[inst].name());
     }
 
     public void updateFile() {
@@ -161,7 +162,7 @@ public class UXManagerAW extends JFrame {
     }
 
     public void updateProcess(ProcessAW processAW) {
-        SwingUtilities.invokeLater(()->{
+        SwingUtilities.invokeLater(() -> {
             this.codeListModel.removeAllElements();
             this.dataListModel.removeAllElements();
             this.arListModel.removeAllElements();
@@ -208,6 +209,7 @@ public class UXManagerAW extends JFrame {
     {
         $$$setupUI$$$();
     }
+
     private void $$$setupUI$$$() {
         this.createUIComponents();
         main = new JPanel();
@@ -227,10 +229,9 @@ public class UXManagerAW extends JFrame {
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.BOTH;
         main.add(cpuPanel, gbc);
-        cpuPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), "<CPU>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 18, cpuPanel.getFont())));
+        cpuPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), "<CPU>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
         JLabel mar = new JLabel();
-        Font marFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, mar.getFont());
-        if (marFont != null) mar.setFont(marFont);
+        mar.setFont(baseFont);
         mar.setText("MAR");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -238,8 +239,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(mar, gbc);
         marValue = new JLabel();
-        Font marValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, marValue.getFont());
-        if (marValueFont != null) marValue.setFont(marValueFont);
+        marValue.setFont(baseFont.deriveFont(20f));
         marValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -247,8 +247,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(marValue, gbc);
         JLabel csr = new JLabel();
-        Font csrFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, csr.getFont());
-        if (csrFont != null) csr.setFont(csrFont);
+        csr.setFont(baseFont);
         csr.setText("CSR");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -256,8 +255,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(csr, gbc);
         csrValue = new JLabel();
-        Font csrValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, csrValue.getFont());
-        if (csrValueFont != null) csrValue.setFont(csrValueFont);
+        csrValue.setFont(baseFont.deriveFont(20f));
         csrValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -265,8 +263,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(csrValue, gbc);
         JLabel hsr = new JLabel();
-        Font hsrFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, hsr.getFont());
-        if (hsrFont != null) hsr.setFont(hsrFont);
+        hsr.setFont(baseFont);
         hsr.setText("HSR");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -274,8 +271,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(hsr, gbc);
         hsrValue = new JLabel();
-        Font hsrValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, hsrValue.getFont());
-        if (hsrValueFont != null) hsrValue.setFont(hsrValueFont);
+        hsrValue.setFont(baseFont.deriveFont(20f));
         hsrValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -283,8 +279,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(hsrValue, gbc);
         JLabel mbr = new JLabel();
-        Font mbrFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, mbr.getFont());
-        if (mbrFont != null) mbr.setFont(mbrFont);
+        mbr.setFont(baseFont);
         mbr.setText("     MBR     ");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -292,8 +287,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(mbr, gbc);
         mbrValue = new JLabel();
-        Font mbrValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, mbrValue.getFont());
-        if (mbrValueFont != null) mbrValue.setFont(mbrValueFont);
+        mbrValue.setFont(baseFont.deriveFont(20f));
         mbrValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -301,8 +295,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(mbrValue, gbc);
         JLabel sp = new JLabel();
-        Font spFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, sp.getFont());
-        if (spFont != null) sp.setFont(spFont);
+        sp.setFont(baseFont);
         sp.setText("SP");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -310,8 +303,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(sp, gbc);
         spValue = new JLabel();
-        Font spValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, spValue.getFont());
-        if (spValueFont != null) spValue.setFont(spValueFont);
+        spValue.setFont(baseFont.deriveFont(20f));
         spValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -319,8 +311,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(spValue, gbc);
         JLabel iro = new JLabel();
-        Font iroFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, iro.getFont());
-        if (iroFont != null) iro.setFont(iroFont);
+        iro.setFont(baseFont);
         iro.setText("IR ODCODE");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -328,8 +319,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(iro, gbc);
         iroValue = new JLabel();
-        Font iroValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, iroValue.getFont());
-        if (iroValueFont != null) iroValue.setFont(iroValueFont);
+        iroValue.setFont(baseFont.deriveFont(20f));
         iroValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -337,8 +327,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(iroValue, gbc);
         JLabel ira = new JLabel();
-        Font iraFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, ira.getFont());
-        if (iraFont != null) ira.setFont(iraFont);
+        ira.setFont(baseFont);
         ira.setText("IR ADDRESS");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -346,8 +335,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(ira, gbc);
         iraValue = new JLabel();
-        Font iraValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, iraValue.getFont());
-        if (iraValueFont != null) iraValue.setFont(iraValueFont);
+        iraValue.setFont(baseFont.deriveFont(20f));
         iraValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -355,8 +343,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(iraValue, gbc);
         JLabel itr = new JLabel();
-        Font itrFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, itr.getFont());
-        if (itrFont != null) itr.setFont(itrFont);
+        itr.setFont(baseFont);
         itr.setText("ITR");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -364,8 +351,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(itr, gbc);
         itrValue = new JLabel();
-        Font itrValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, itrValue.getFont());
-        if (itrValueFont != null) itrValue.setFont(itrValueFont);
+        itrValue.setFont(baseFont.deriveFont(20f));
         itrValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -373,8 +359,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(itrValue, gbc);
         JLabel pc = new JLabel();
-        Font pcFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, pc.getFont());
-        if (pcFont != null) pc.setFont(pcFont);
+        pc.setFont(baseFont);
         pc.setText("PC");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
@@ -382,8 +367,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(pc, gbc);
         acValue = new JLabel();
-        Font acValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, acValue.getFont());
-        if (acValueFont != null) acValue.setFont(acValueFont);
+        acValue.setFont(baseFont.deriveFont(20f));
         acValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
@@ -391,8 +375,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(acValue, gbc);
         JLabel cu = new JLabel();
-        Font cuFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, cu.getFont());
-        if (cuFont != null) cu.setFont(cuFont);
+        cu.setFont(baseFont.deriveFont(20f));
         cu.setText("<html><center>CONTROL</center><center>UNIT</center></html>");
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
@@ -401,8 +384,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(cu, gbc);
         JLabel alu = new JLabel();
-        Font aluFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, alu.getFont());
-        if (aluFont != null) alu.setFont(aluFont);
+        alu.setFont(baseFont.deriveFont(20f));
         alu.setText("<html><center>ARITHMATIC</center><center>LOGIC</center><center>UNIT</center></html>");
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
@@ -421,8 +403,7 @@ public class UXManagerAW extends JFrame {
         gbc.insets = new Insets(0, 0, 10, 0);
         cpuPanel.add(delayPanel, gbc);
         JLabel cdelay = new JLabel();
-        Font cdelayFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, cdelay.getFont());
-        if (cdelayFont != null) cdelay.setFont(cdelayFont);
+        cdelay.setFont(baseFont);
         cdelay.setText("CPU delay ms");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -432,8 +413,7 @@ public class UXManagerAW extends JFrame {
         gbc.insets = new Insets(0, 0, 0, 20);
         delayPanel.add(cdelay, gbc);
         gbc = new GridBagConstraints();
-        Font delayFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, delay.getFont());
-        if (delayFont != null) delay.setFont(delayFont);
+        delay.setFont(baseFont.deriveFont(13f));
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.gridwidth = 4;
@@ -451,8 +431,7 @@ public class UXManagerAW extends JFrame {
         gbc.insets = new Insets(10, 0, 10, 0);
         cpuPanel.add(sperator, gbc);
         pcValue = new JLabel();
-        Font pcValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, pcValue.getFont());
-        if (pcValueFont != null) pcValue.setFont(pcValueFont);
+        pcValue.setFont(baseFont.deriveFont(20f));
         pcValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
@@ -460,8 +439,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(pcValue, gbc);
         JLabel status = new JLabel();
-        Font statusFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, status.getFont());
-        if (statusFont != null) status.setFont(statusFont);
+        status.setFont(baseFont);
         status.setText("STATUS");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
@@ -470,8 +448,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(status, gbc);
         JLabel ac = new JLabel();
-        Font acFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, ac.getFont());
-        if (acFont != null) ac.setFont(acFont);
+        ac.setFont(baseFont);
         ac.setText("AC");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
@@ -479,8 +456,7 @@ public class UXManagerAW extends JFrame {
         gbc.weightx = 0.1;
         cpuPanel.add(ac, gbc);
         statusValue = new JLabel();
-        Font statusValueFont = this.$$$getFont$$$("JetBrains Mono", -1, 20, statusValue.getFont());
-        if (statusValueFont != null) statusValue.setFont(statusValueFont);
+        statusValue.setFont(baseFont.deriveFont(20f));
         statusValue.setText("0");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
@@ -497,17 +473,15 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.VERTICAL;
         main.add(memoryPane, gbc);
-        memoryPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<MEMORY>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 18, memoryPane.getFont())));
+        memoryPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<MEMORY>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
         memory.setBackground(new Color(-1));
-        Font memoryFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, memory.getFont());
-        if (memoryFont != null) memory.setFont(memoryFont);
+        memory.setFont(baseFont.deriveFont(13f));
         memory.setPreferredSize(new Dimension(170, 300));
         memoryPane.setViewportView(memory);
         JScrollPane consolePane = new JScrollPane();
         consolePane.setAutoscrolls(true);
         consolePane.setBackground(new Color(-1));
-        Font consolePaneFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, consolePane.getFont());
-        if (consolePaneFont != null) consolePane.setFont(consolePaneFont);
+        consolePane.setFont(baseFont.deriveFont(13f));
         consolePane.setMinimumSize(new Dimension(600, 310));
         consolePane.setPreferredSize(new Dimension(600, 310));
         gbc = new GridBagConstraints();
@@ -517,27 +491,26 @@ public class UXManagerAW extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(0, 10, 0, 0);
         main.add(consolePane, gbc);
-        consolePane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<CONSOLE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 18, consolePane.getFont())));
+        consolePane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<CONSOLE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
         console.setBackground(new Color(-1));
-        Font consoleFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, console.getFont());
-        if (consoleFont != null) console.setFont(consoleFont);
+        console.setFont(baseFont.deriveFont(13f));
         this.console.setLineWrap(true);
         this.console.setMinimumSize(new Dimension(550, 270));
         this.console.setPreferredSize(new Dimension(550, 270));
         this.console.setVerifyInputWhenFocusTarget(true);
         this.console.setEditable(false);
         consolePane.setViewportView(this.console);
-        Font executeFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, execute.getFont());
-        if (executeFont != null) execute.setFont(executeFont);
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        execute.setFont(baseFont.deriveFont(Font.BOLD));
         execute.setText("EXECUTE");
-        Font pauseFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, pause.getFont());
-        if (pauseFont != null) pause.setFont(pauseFont);
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 1;
         gbc.weightx = 0.7;
         gbc.ipadx = 100;
         main.add(execute, gbc);
+        pause.setFont(baseFont.deriveFont(Font.BOLD));
         pause.setText(pauseString);
         gbc = new GridBagConstraints();
         gbc.gridx = 3;
@@ -547,8 +520,7 @@ public class UXManagerAW extends JFrame {
         main.add(pause, gbc);
         current = new JLabel();
         current.setText(currentString);
-        Font currentFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, current.getFont());
-        if (currentFont != null) current.setFont(currentFont);
+        current.setFont(baseFont.deriveFont(Font.BOLD));
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 1;
@@ -557,8 +529,7 @@ public class UXManagerAW extends JFrame {
         main.add(current, gbc);
         currentInstruction = new JLabel();
         currentInstruction.setText(instructionString);
-        Font currentInstructionFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, currentInstruction.getFont());
-        if (currentInstructionFont != null) currentInstruction.setFont(currentInstructionFont);
+        currentInstruction.setFont(baseFont.deriveFont(Font.BOLD));
         gbc = new GridBagConstraints();
         gbc.gridx = 5;
         gbc.gridy = 1;
@@ -576,16 +547,14 @@ public class UXManagerAW extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(0, 10, 0, 0);
         main.add(filePane, gbc);
-        filePane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<FILE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 18, filePane.getFont())));
+        filePane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<FILE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
         fileTree.setBackground(new Color(-1));
-        Font fileTreeFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, fileTree.getFont());
-        if (fileTreeFont != null) fileTree.setFont(fileTreeFont);
+        fileTree.setFont(baseFont);
         fileTree.setMinimumSize(new Dimension(170, 350));
         fileTree.setPreferredSize(new Dimension(170, 350));
         fileTree.setToggleClickCount(2);
         filePane.setViewportView(fileTree);
-        Font pathFont = this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 15, path.getFont());
-        if (pathFont != null) path.setFont(pathFont);
+        path.setFont(baseFont.deriveFont(Font.BOLD));
         path.setText(pathString);
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -603,9 +572,8 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.BOTH;
         main.add(readyPane, gbc);
-        readyPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<READY QUEUE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 20, readyPane.getFont())));
-        Font readyFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, ready.getFont());
-        if (readyFont != null) ready.setFont(readyFont);
+        readyPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<READY QUEUE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
+        ready.setFont(baseFont.deriveFont(13f));
         ready.setBackground(new Color(-1));
         ready.setMinimumSize(new Dimension(300, 350));
         ready.setPreferredSize(new Dimension(300, 350));
@@ -619,66 +587,40 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.BOTH;
         main.add(waitPane, gbc);
-        waitPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<WAIT QUEUE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 20, waitPane.getFont())));
-        Font waitFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, wait.getFont());
-        if (waitFont != null) wait.setFont(waitFont);
+        waitPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<WAIT QUEUE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
         wait.setBackground(new Color(-1));
         wait.setMinimumSize(new Dimension(300, 350));
         wait.setPreferredSize(new Dimension(300, 350));
         waitPane.setViewportView(wait);
         JTabbedPane currentProcess = new JTabbedPane();
-        Font currentProcessFont = this.$$$getFont$$$("JetBrains Mono", -1, 15, currentProcess.getFont());
-        if (currentProcessFont != null) currentProcess.setFont(currentProcessFont);
+        currentProcess.setFont(baseFont);
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.BOTH;
         main.add(currentProcess, gbc);
-        currentProcess.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<CURRENT PROCESS>", TitledBorder.LEFT, TitledBorder.DEFAULT_POSITION, this.$$$getFont$$$("JetBrains Mono", Font.BOLD, 20, currentProcess.getFont())));
+        currentProcess.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<CURRENT PROCESS>", TitledBorder.LEFT, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
         currentProcess.setMaximumSize(new Dimension(300, 300));
         currentProcess.setPreferredSize(new Dimension(300, 300));
         JScrollPane codePane = new JScrollPane();
         currentProcess.addTab("CODE", codePane);
-        Font codeLineFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, codeLine.getFont());
-        if (codeLineFont != null) codeLine.setFont(codeLineFont);
+        codeLine.setFont(baseFont.deriveFont(13f));
         codePane.setViewportView(codeLine);
         JScrollPane dataPane = new JScrollPane();
         currentProcess.addTab("DATA", dataPane);
-        Font dataLineFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, codeLine.getFont());
-        if (dataLineFont != null) dataLine.setFont(dataLineFont);
+        dataLine.setFont(baseFont.deriveFont(13f));
         dataLine.setBackground(new Color(-1));
         dataPane.setViewportView(dataLine);
         JScrollPane stackPane = new JScrollPane();
         currentProcess.addTab("STACK", stackPane);
-        Font localsFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, codeLine.getFont());
-        if (localsFont != null) locals.setFont(localsFont);
+        locals.setFont(baseFont.deriveFont(13f));
         locals.setBackground(new Color(-1));
         stackPane.setViewportView(locals);
         JScrollPane heapPane = new JScrollPane();
         currentProcess.addTab("HEAP", heapPane);
-        Font instancesFont = this.$$$getFont$$$("JetBrains Mono", -1, 13, codeLine.getFont());
-        if (instancesFont != null) instances.setFont(instancesFont);
+        instances.setFont(baseFont.deriveFont(13f));
         instances.setBackground(new Color(-1));
         heapPane.setViewportView(instances);
-    }
-
-    /**
-     * @noinspection ALL
-     */
-    private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
-        if (currentFont == null) return null;
-        String resultName;
-        if (fontName == null) {
-            resultName = currentFont.getName();
-        } else {
-            Font testFont = new Font(fontName, Font.PLAIN, 10);
-            if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
-                resultName = fontName;
-            } else {
-                resultName = currentFont.getName();
-            }
-        }
-        return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
     }
 
 }

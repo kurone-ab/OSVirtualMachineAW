@@ -166,8 +166,6 @@ public class ProcessManagerAW {
             this.ready.nextProcess();
             //context load
             this.currentProcess.ps = ProcessState.RUN;
-            if (this.currentProcess.context[Register.ITR.ordinal()]!=0)
-                System.out.println("---");
             for (Register register:Register.values()){
                 register.data = this.currentProcess.context[register.ordinal()];
             }
