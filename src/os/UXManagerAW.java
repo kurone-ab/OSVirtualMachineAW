@@ -63,7 +63,7 @@ public class UXManagerAW extends JFrame {
         this.execute.addActionListener((e) -> {
             String priority = JOptionPane.showInputDialog("Set Process Priority.");
             int pri = 0;
-            if (priority != null) if (priority.matches("[\\-0-9]+")) pri = Integer.parseInt(priority);
+            if (priority != null) if (priority.matches("-?[0-9]+")) pri = Integer.parseInt(priority);
             Loader.load(this.executableFile, pri);
         });
 

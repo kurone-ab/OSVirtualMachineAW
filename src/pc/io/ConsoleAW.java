@@ -75,7 +75,7 @@ public class ConsoleAW extends JTextArea implements IODevice {
 				StringTokenizer tokenizer = new StringTokenizer(text, "\n");
 				while (tokenizer.countTokens() > 1) tokenizer.nextToken();
 				String value = tokenizer.nextToken();
-				if (value.matches("[\\-0-9]+"))
+				if (value.matches("-?[0-9]+"))
 					buffer = Integer.parseInt(value);
 				if (!inputQueue.isEmpty()) {
 					int[] parameters = inputQueue.pop();
