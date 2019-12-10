@@ -161,20 +161,22 @@ public class UXManagerAW extends JFrame {
     }
 
     public void updateProcess(ProcessAW processAW) {
-        this.codeListModel.removeAllElements();
-        this.dataListModel.removeAllElements();
-        this.arListModel.removeAllElements();
-        this.instanceListModel.removeAllElements();
-        if (processAW != null) {
-            this.current.setText(currentString + processAW.pid);
-            for (int i : processAW.code) this.codeListModel.addElement(i);
-            for (int i : processAW.data) this.dataListModel.addElement(i);
-            this.arListModel.addAll(Arrays.asList(processAW.stack));
-            this.instanceListModel.addAll(processAW.heap);
-        } else {
-            this.currentInstruction.setText(instructionString);
-            this.current.setText(currentString);
-        }
+        SwingUtilities.invokeLater(()->{
+            this.codeListModel.removeAllElements();
+            this.dataListModel.removeAllElements();
+            this.arListModel.removeAllElements();
+            this.instanceListModel.removeAllElements();
+            if (processAW != null) {
+                this.current.setText(currentString + processAW.pid);
+                for (int i : processAW.code) this.codeListModel.addElement(i);
+                for (int i : processAW.data) this.dataListModel.addElement(i);
+                this.arListModel.addAll(Arrays.asList(processAW.stack));
+                this.instanceListModel.addAll(processAW.heap);
+            } else {
+                this.currentInstruction.setText(instructionString);
+                this.current.setText(currentString);
+            }
+        });
     }
 
     public void updateReadyQueue(Collection<ProcessControlBlock> processControlBlocks) {

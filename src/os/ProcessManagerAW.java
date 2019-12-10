@@ -4,10 +4,11 @@ import os.compiler.CompilerAW;
 import pc.mainboard.MainBoard;
 import pc.mainboard.cpu.Register;
 
-import java.lang.management.OperatingSystemMXBean;
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static os.OperatingSystem.*;
 
 public class ProcessManagerAW {
     private SchedulingQueue ready = new SchedulingQueue(), wait = new SchedulingQueue();
@@ -15,6 +16,7 @@ public class ProcessManagerAW {
     private int delay;
     private ClockState clockState;
     private final Thread clockThread = new Thread(this::run);
+    private final ReentrantLock lock = new ReentrantLock(true);
 
     synchronized void newProcess(int index, int priority, ProcessAW processAW) {
         ProcessControlBlock pcb = new ProcessControlBlock();
@@ -46,51 +48,63 @@ public class ProcessManagerAW {
             Register[] registers = Register.values();//Initialize the register to the value of pcb before run.
             for (int i = 0; i < registers.length; i++)
                 registers[i].data = this.currentProcess.context[i];
-            OperatingSystem.uxManagerAW.updateRegisters();
-            OperatingSystem.uxManagerAW.updateMemory();
-            OperatingSystem.uxManagerAW.updateReadyQueue(this.ready);
+            uxManagerAW.updateRegisters();
+            uxManagerAW.updateMemory();
+            uxManagerAW.updateReadyQueue(this.ready);
             long start = System.nanoTime();
-            while (this.currentProcess != null) {
-                if (this.currentProcess.ps == ProcessState.TERMINATE) break;
-                if (this.clockState == ClockState.WAIT) {
-                    synchronized (this.clockThread) {
+            try {
+                lock.lock();
+                while (this.currentProcess != null) {
+                    if (this.currentProcess.ps == ProcessState.TERMINATE) break;
+                    if (this.clockState == ClockState.WAIT) {
+                        synchronized (this.clockThread) {
+                            try {
+                                this.clockThread.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    if (this.currentProcess.ps == ProcessState.RUN) MainBoard.cpu.clock();
+                    uxManagerAW.updateRegisters();
+                    if (this.delay != 0) {
+                        uxManagerAW.updateProcess(this.getCurrentProcess());
                         try {
-                            this.clockThread.wait();
+                            Thread.sleep(this.delay);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-                }
-                if (this.currentProcess.ps == ProcessState.RUN) MainBoard.cpu.clock();
-                OperatingSystem.uxManagerAW.updateRegisters();
-                if (this.delay != 0) {
-                    OperatingSystem.uxManagerAW.updateProcess(this.getCurrentProcess());
-                    try {
-                        Thread.sleep(this.delay);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    boolean moreInterrupt = deviceManagerAW.hasMoreInterrupt(),
+                            interrupted = interrupted();
+                    if (interrupted || moreInterrupt) {
+                        int interruptID = Register.ITR.data >>> CompilerAW.instruction_bit;
+                        int interruptData = Register.ITR.data & 0x00ffffff;
+                        if (interruptID==2){
+                            System.out.println(this.currentProcess.pid);
+                            System.out.println(interruptData);
+                        }
+                        InterruptServiceRoutine isr = interruptVectorTable.getISR(interruptID);
+                        Interrupt interrupt = new Interrupt(this.currentProcess.pid, interruptID, Register.SP.data,
+                                interruptData, Register.CSR.data, Register.HSR.data, isr.priority);
+                        if (interrupted && moreInterrupt) deviceManagerAW.putInterrupt(interrupt);
+                        if (moreInterrupt) {
+                            interrupt = deviceManagerAW.getInterrupt();
+                            isr = interruptVectorTable.getISR(interrupt.iid);
+                        }
+                        isr.handle(interrupt);
+                        Register.STATUS.data &= 0x11111110;
+                        Register.ITR.data &= 0x00ffffff;
+                        start = System.nanoTime();
+                    }
+                    if ((System.nanoTime() - start) > TIME_SLICE) {
+                        deviceManagerAW.putInterrupt(new Interrupt(InterruptVectorTable.timeExpiredID, interruptVectorTable.getISR(InterruptVectorTable.timeExpiredID).priority));
                     }
                 }
-                boolean moreInterrupt = OperatingSystem.deviceManagerAW.hasMoreInterrupt(),
-                        interrupted = interrupted();// TODO: 2019-12-09
-                if (interrupted || moreInterrupt) {// TODO: 2019-11-12 make interrupt
-                    int interruptID = Register.ITR.data >>> CompilerAW.instruction_bit;
-                    int interruptData = Register.ITR.data & 0x00ffffff;
-                    System.out.println("data"+interruptData);
-                    Register.STATUS.data &= 0x11111110;
-                    Register.ITR.data = 0;
-                    InterruptServiceRoutine isr = OperatingSystem.interruptVectorTable.getInterrupt(interruptID);
-                    isr.set(this.currentProcess.pid, Register.SP.data, interruptData, Register.CSR.data, Register.HSR.data);
-                    if (interrupted && moreInterrupt) OperatingSystem.deviceManagerAW.putInterrupt(isr);
-                    if (moreInterrupt) isr = OperatingSystem.deviceManagerAW.getInterrupt();
-                    isr.handle();
-                    start = System.nanoTime();
-                }
-                if ((System.nanoTime() - start) > OperatingSystem.TIME_SLICE) {
-                    OperatingSystem.deviceManagerAW.putInterrupt(OperatingSystem.interruptVectorTable.getInterrupt(InterruptVectorTable.timeExpiredID));
-                }
+            } finally {
+                lock.unlock();
             }
-            OperatingSystem.uxManagerAW.updateProcess(null);
+            uxManagerAW.updateProcess(null);
             synchronized (this.clockThread) {
                 try {
                     this.clockThread.wait();
@@ -102,13 +116,15 @@ public class ProcessManagerAW {
     }
 
     public synchronized void isrFinished(int pid) {
-        ProcessControlBlock pcb = this.wait.pull(pid);
-        pcb.ps = ProcessState.READY;
-        this.ready.offer(pcb);
-    }
-
-    public synchronized void waitOffer(){
-        this.wait.offer(this.currentProcess);
+        ProcessControlBlock pcb;
+        try {
+            pcb = this.wait.pull(pid);
+            pcb.ps = ProcessState.READY;
+            this.ready.offer(pcb);
+        } catch (NoSuchElementException e) {
+            System.out.println(pid);
+            e.printStackTrace();
+        }
     }
 
     public void setDelay(int delay) {
@@ -129,28 +145,37 @@ public class ProcessManagerAW {
         return this.clockState;
     }
 
-    synchronized void contextSwitch(ProcessState processState) {
-        ready.increasePriority();
-        if (ready.isEmpty() && processState == ProcessState.TERMINATE) {
+    void contextSwitch(ProcessState processState) {
+        try {
+            lock.lock();
+            ready.increasePriority();
+            if (ready.isEmpty() && processState == ProcessState.TERMINATE) {
+                this.currentProcess.ps = processState;
+                return;
+            }
             this.currentProcess.ps = processState;
-            return;
+            if (processState != ProcessState.TERMINATE) {
+                //context save
+                for (Register register:Register.values()){
+                    this.currentProcess.context[register.ordinal()] = register.data;
+                }
+                this.currentProcess.priority--;
+                if (processState == ProcessState.READY) this.ready.offer(this.currentProcess);
+                else if (processState==ProcessState.WAIT) this.wait.offer(this.currentProcess);
+            }
+            this.ready.nextProcess();
+            //context load
+            this.currentProcess.ps = ProcessState.RUN;
+            if (this.currentProcess.context[Register.ITR.ordinal()]!=0)
+                System.out.println("---");
+            for (Register register:Register.values()){
+                register.data = this.currentProcess.context[register.ordinal()];
+            }
+            OperatingSystem.uxManagerAW.updateReadyQueue(this.ready);
+            OperatingSystem.uxManagerAW.updateWaitQueue(this.wait);
+        } finally {
+            lock.unlock();
         }
-        Register[] registers = Register.values();
-        this.currentProcess.ps = processState;
-        if (processState != ProcessState.TERMINATE) {
-            //context save
-            for (int i = 0; i < registers.length; i++)
-                this.currentProcess.context[i] = registers[i].data;
-            this.currentProcess.priority--;
-            if (processState == ProcessState.READY) ready.offer(this.currentProcess);
-        }
-        this.ready.nextProcess();
-        //context load
-        this.currentProcess.ps = ProcessState.RUN;
-        for (int i = 0; i < registers.length; i++)
-            registers[i].data = this.currentProcess.context[i];
-        OperatingSystem.uxManagerAW.updateReadyQueue(this.ready);
-        OperatingSystem.uxManagerAW.updateWaitQueue(this.wait);
     }
 
     private boolean interrupted() {
@@ -173,7 +198,7 @@ public class ProcessManagerAW {
             } else currentProcess = null;
         }
 
-        ProcessControlBlock pull(int pid) {
+        synchronized ProcessControlBlock pull(int pid) {
             for (ProcessControlBlock processControlBlock : this) {
                 if (processControlBlock.pid == pid) {
                     this.remove(processControlBlock);

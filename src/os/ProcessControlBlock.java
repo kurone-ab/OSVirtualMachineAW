@@ -31,7 +31,7 @@ public class ProcessControlBlock implements Comparable<ProcessControlBlock> {
 
 	@Override
 	public int compareTo(@NotNull ProcessControlBlock o) {
-		return this.priority > o.priority ? -1 : 1;
+		return this.priority >= o.priority ? -1 : 1;
 	}
 
 	@Override

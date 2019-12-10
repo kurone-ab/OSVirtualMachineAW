@@ -13,79 +13,85 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ConsoleAW extends JTextArea implements IODevice {
-	private final ReentrantLock lock = new ReentrantLock(true);
-	private final ConsoleDriver consoleDriver = new ConsoleDriver();
-	private final LinkedList<int[]> inputQueue = new LinkedList<>();
-	private int buffer;
+    private final ReentrantLock lock = new ReentrantLock(true);
+    private final ConsoleDriver consoleDriver = new ConsoleDriver();
+    private final LinkedList<Interrupt> inputQueue = new LinkedList<>();
+    private int buffer;
 
-	public ConsoleAW() {
-		this.addKeyListener(new InputListener());
-	}
+    public ConsoleAW() {
+        this.addKeyListener(new InputListener());
+    }
 
-	@Override
-	public Driver getDriver() {
-		return consoleDriver;
-	}
+    @Override
+    public Driver getDriver() {
+        return consoleDriver;
+    }
 
-	@Override
-	public DeviceType getType() {
-		return DeviceType.console;
-	}
+    @Override
+    public DeviceType getType() {
+        return DeviceType.console;
+    }
 
-	private class ConsoleDriver implements Driver{
+    private class ConsoleDriver implements Driver {
 
-		@Override
-		public void input(int pid, int sp, int address, int csr, int hsr) {
-			try{
-				lock.lock();
-				inputQueue.add(new int[]{pid, sp, address, csr, hsr});
-			}finally {
-				lock.unlock();
-			}
-		}
+        @Override
+        public void input(Interrupt interrupt) {
+            synchronized (this) {
+                inputQueue.add(interrupt);
+            }
+        }
 
-		@Override
-		public void output(int pid, int sp, int address, int csr, int hsr) {
-			try {
-				lock.lock();
-				setText(getText() + MainBoard.mmu.dataFetch(address, sp, csr, hsr) + "\n");
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} finally {
-				lock.unlock();
-			}
-		}
+        @Override
+        public void output(Interrupt interrupt) {
+            Thread thread = new Thread(() -> {
+                lock.lock();
+                try {
+                    setText(getText() + MainBoard.mmu.dataFetch(interrupt.address, interrupt.sp, interrupt.csr, interrupt.hsr) + "\n");
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } finally {
+                    InterruptServiceRoutine isr = OperatingSystem.interruptVectorTable.getISR(InterruptVectorTable.finishID);
+                    isr.handle(interrupt);
+                    lock.unlock();
+                }
+            });
+            thread.start();
+        }
 
-		@Override
-		public void connect() {
+        @Override
+        public void connect() {
 
-		}
+        }
 
-		@Override
-		public void disconnect() {
+        @Override
+        public void disconnect() {
 
-		}
-	}
+        }
+    }
 
-	private class InputListener extends KeyAdapter {
-		@Override
-		public void keyReleased(KeyEvent e) {
-			if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-				String text = getText();
-				StringTokenizer tokenizer = new StringTokenizer(text, "\n");
-				while (tokenizer.countTokens() > 1) tokenizer.nextToken();
-				String value = tokenizer.nextToken();
-				if (value.matches("-?[0-9]+"))
-					buffer = Integer.parseInt(value);
-				if (!inputQueue.isEmpty()) {
-					int[] parameters = inputQueue.pop();
-					MainBoard.mmu.dataStore(buffer, parameters[2], parameters[1], parameters[3], parameters[4]);
-					InterruptServiceRoutine isr = OperatingSystem.interruptVectorTable.getInterrupt(InterruptVectorTable.finishID);
-					isr.set(parameters[0], 0, 0, 0, 0);
-					isr.handle();
-					if (inputQueue.isEmpty()) setEditable(false);
-				}
-			}
-		}
-	}
+    private class InputListener extends KeyAdapter {
+        @Override
+        public void keyReleased(KeyEvent e) {
+            try {
+                lock.lock();
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    String text = getText();
+                    StringTokenizer tokenizer = new StringTokenizer(text, "\n");
+                    while (tokenizer.countTokens() > 1) tokenizer.nextToken();
+                    String value = tokenizer.nextToken();
+                    if (value.matches("-?[0-9]+"))
+                        buffer = Integer.parseInt(value);
+                    if (!inputQueue.isEmpty()) {
+                        Interrupt interrupt = inputQueue.pop();
+                        MainBoard.mmu.dataStore(buffer, interrupt.address, interrupt.sp, interrupt.csr, interrupt.hsr);
+                        InterruptServiceRoutine isr = OperatingSystem.interruptVectorTable.getISR(InterruptVectorTable.finishID);
+                        isr.handle(interrupt);
+                        if (inputQueue.isEmpty()) setEditable(false);
+                    }
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
 }

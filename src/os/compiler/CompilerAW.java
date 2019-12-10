@@ -22,7 +22,7 @@ public class CompilerAW {
 	imports = "import", function = "func", use = "use", as = "as", annotation = "/--", returns = "return",
 	ifs = "if", whiles = "while", interrupt = "irpt", exit = "exit", big = ">", small = "<", equal = "==", self = "self",
 	print = "print", input = "input", send = "send", receive = "receive", connect = "connect", disconnect = "disconnect";
-	private static final Pattern number_pattern = Pattern.compile("[0-9\\-]+");
+	private static final Pattern number_pattern = Pattern.compile("-?[0-9]+");
 	private static final Pattern alpha_pattern = Pattern.compile("[a-zA-Z]+");
 	private static final Pattern fnc_pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*\\.?)+\\([a-zA-Z\\-0-9_, ]*\\)");
 	private static final Pattern fn_name_pattern = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*\\(");

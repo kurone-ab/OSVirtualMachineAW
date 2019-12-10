@@ -1,28 +1,24 @@
 package os;
 
-import os.compiler.CompilerAW;
 import pc.io.ConsoleAW;
 import pc.io.NetworkAW;
 import pc.mainboard.MainBoard;
-import pc.mainboard.cpu.Register;
 
-import java.util.LinkedList;
 import java.util.PriorityQueue;
 
 public class DeviceManagerAW {
-    private PriorityQueue<InterruptServiceRoutine> ioQueue = new PriorityQueue<>();// TODO: 2019-12-09 not interrupt id change to isr
-    boolean alreadyInput;
+    private PriorityQueue<Interrupt> interruptQueue = new PriorityQueue<>();// TODO: 2019-12-09 not interrupt id change to isr
 
     boolean hasMoreInterrupt() {
-        return !this.ioQueue.isEmpty();
+        return !this.interruptQueue.isEmpty();
     }
 
-    void putInterrupt(InterruptServiceRoutine isr) {
-        ioQueue.add(isr);
+    void putInterrupt(Interrupt interrupt) {
+        interruptQueue.add(interrupt);
     }
 
-    InterruptServiceRoutine getInterrupt() {
-        return ioQueue.poll();
+    Interrupt getInterrupt() {
+        return interruptQueue.poll();
     }
 
     void setConsoleEditable(boolean editable){

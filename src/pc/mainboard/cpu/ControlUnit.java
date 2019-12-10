@@ -209,8 +209,9 @@ class ControlUnit {
     }
 
     private void ITR() {
+        System.out.println("itr: "+ITR.data);
         STATUS.data |= 0x00000001;
-        ITR.data += (IR.data & 0x00ffffff) << CompilerAW.instruction_bit;
+        ITR.data = ((IR.data & 0x00ffffff) << CompilerAW.instruction_bit) + ITR.data;
     }
 
     private void FNC() {

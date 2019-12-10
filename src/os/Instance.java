@@ -13,7 +13,7 @@ public class Instance {
 
 	@Override
 	public String toString() {
-		return "Instance {" + "variables=" + Arrays.toString(instance_variables) +
+		return "{" + "variables=" + Arrays.toString(instance_variables) +
 				'}';
 	}
 }

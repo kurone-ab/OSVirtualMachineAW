@@ -14,31 +14,24 @@ public class InterruptVectorTable {
 		ivt.put(timeExpiredID, new TimeExpiredInterruptServiceRoutine());//time expired
 		ivt.put(printID, new PrintInterruptServiceRoutine());//print
 		ivt.put(inputID, new InputInterruptServiceRoutine());//input
+		ivt.put(sendID, new SendInterruptServiceRoutine());//send
+		ivt.put(receiveID, new ReceiveInterruptServiceRoutine());//receive
 		ivt.put(connectID, new ConnectInterruptServiceRoutine());//connect
 		ivt.put(disconnectID, new DisconnectInterruptServiceRoutine());//disconnect
 		ivt.put(finishID, new InterruptFinished());//finish
 	}
 
-	public InterruptServiceRoutine getInterrupt(int id){
-		try {
-			return ivt.get(id).clone();
-		} catch (CloneNotSupportedException e) {
-			return null;
-		}
+	public InterruptServiceRoutine getISR(int id){
+		return ivt.get(id);
 	}
+
 	private static class HaltInterruptServiceRoutine extends InterruptServiceRoutine{
 		public HaltInterruptServiceRoutine() {
-			this.isrID = InterruptVectorTable.haltID;
-		}
-
-		@Override
-		public void set(int pid, int sp, int address, int csr, int hsr) {
-			super.set(pid, sp, address, csr, hsr);
 			this.priority = 10;
 		}
 
 		@Override
-		public void handle() {
+		public void handle(Interrupt interrupt) {
 			processManagerAW.halt();
 		}
 	}
@@ -46,90 +39,84 @@ public class InterruptVectorTable {
 	private static class TimeExpiredInterruptServiceRoutine extends InterruptServiceRoutine{
 
 		public TimeExpiredInterruptServiceRoutine() {
-			this.isrID = InterruptVectorTable.timeExpiredID;
+			this.priority = 20;
 		}
 
 		@Override
-		public void set(int pid, int sp, int address, int csr, int hsr) {
-			super.set(pid, sp, address, csr, hsr);
-			this.priority = 11;
-
-		}
-
-		@Override
-		public void handle() {
+		public void handle(Interrupt interrupt) {
 			processManagerAW.contextSwitch(ProcessState.READY);
 		}
 	}
 
 	private static class PrintInterruptServiceRoutine extends InterruptServiceRoutine{
 		public PrintInterruptServiceRoutine() {
-			this.isrID = InterruptVectorTable.printID;
+			this.priority = 5;
 		}
 
 		@Override
-		public void set(int pid, int sp, int address, int csr, int hsr) {
-			super.set(pid, sp, address, csr, hsr);
-			this.priority = 2;
-		}
-
-		@Override
-		public void handle() {
-			processManagerAW.waitOffer();
-			processManagerAW.contextSwitch(ProcessState.WAIT);
-			Thread thread = new Thread(()->{
-				OperatingSystem.consoleDriver.output(pid, sp, address, csr, hsr);
-				processManagerAW.isrFinished(pid);
-			});
-			thread.start();
+		public void handle(Interrupt interrupt) {
+			try {
+				lock.lock();
+				processManagerAW.contextSwitch(ProcessState.WAIT);
+				OperatingSystem.consoleDriver.output(interrupt);
+			} finally {
+				lock.unlock();
+			}
 		}
 
 	}
 
 	private static class InputInterruptServiceRoutine extends InterruptServiceRoutine{
 		public InputInterruptServiceRoutine() {
-			this.isrID = InterruptVectorTable.inputID;
+			this.priority = 5;
 		}
 
 		@Override
-		public void set(int pid, int sp, int address, int csr, int hsr) {
-			super.set(pid, sp, address, csr, hsr);
-			this.priority = 2;
-		}
-
-		@Override
-		public void handle() {
-			processManagerAW.waitOffer();
-			processManagerAW.contextSwitch(ProcessState.WAIT);
-			OperatingSystem.deviceManagerAW.setConsoleEditable(true);
-			Thread thread = new Thread(()->{
-				OperatingSystem.consoleDriver.input(pid, sp, address, csr, hsr);
-			});
-			thread.start();
+		public void handle(Interrupt interrupt) {
+			try {
+				lock.lock();
+				processManagerAW.contextSwitch(ProcessState.WAIT);
+				OperatingSystem.deviceManagerAW.setConsoleEditable(true);
+				OperatingSystem.consoleDriver.input(interrupt);
+			} finally {
+				lock.unlock();
+			}
 		}
 
 	}
 
 	private static class SendInterruptServiceRoutine extends InterruptServiceRoutine{
 		public SendInterruptServiceRoutine() {
-			this.isrID = InterruptVectorTable.inputID;
+			this.priority = 5;
 		}
 
 		@Override
-		public void set(int pid, int sp, int address, int csr, int hsr) {
-			super.set(pid, sp, address, csr, hsr);
-			this.priority = 2;
+		public void handle(Interrupt interrupt) {
+			try {
+				lock.lock();
+				processManagerAW.contextSwitch(ProcessState.WAIT);
+				OperatingSystem.networkDriver.output(interrupt);
+			} finally {
+				lock.unlock();
+			}
+		}
+
+	}
+
+	private static class ReceiveInterruptServiceRoutine extends InterruptServiceRoutine{
+		public ReceiveInterruptServiceRoutine() {
+			this.priority = 5;
 		}
 
 		@Override
-		public void handle() {
-			processManagerAW.waitOffer();
-			processManagerAW.contextSwitch(ProcessState.WAIT);
-			OperatingSystem.deviceManagerAW.setConsoleEditable(true);
-			Thread thread = new Thread(()->{
-				OperatingSystem.consoleDriver.input(pid, sp, address, csr, hsr);
-			});
-			thread.start();
+		public void handle(Interrupt interrupt) {
+			try {
+				lock.lock();
+				processManagerAW.contextSwitch(ProcessState.WAIT);
+				OperatingSystem.networkDriver.input(interrupt);
+			} finally {
+				lock.unlock();
+			}
 		}
 
 	}
@@ -137,54 +124,39 @@ public class InterruptVectorTable {
 	private static class InterruptFinished extends InterruptServiceRoutine{
 
 		@Override
-		public void handle() {
-			processManagerAW.isrFinished(pid);
+		public void handle(Interrupt interrupt) {
+			try {
+				lock.lock();
+				processManagerAW.isrFinished(interrupt.pid);
+			} finally {
+				lock.unlock();
+			}
 		}
 	}
 
 	private static class ConnectInterruptServiceRoutine extends InterruptServiceRoutine{
 		public ConnectInterruptServiceRoutine() {
-			this.isrID = connectID;
+			this.priority = 5;
 		}
 
 		@Override
-		public void set(int pid, int sp, int address, int csr, int hsr) {
-			super.set(pid, sp, address, csr, hsr);
-			this.priority = 2;
-		}
-
-		@Override
-		public void handle() {
-			processManagerAW.waitOffer();
+		public void handle(Interrupt interrupt) {
 			processManagerAW.contextSwitch(ProcessState.WAIT);
-			Thread thread = new Thread(()->{
-				OperatingSystem.networkDriver.connect();
-				processManagerAW.isrFinished(pid);
-			});
-			thread.start();
+			OperatingSystem.networkDriver.connect();
+			processManagerAW.isrFinished(interrupt.pid);
 		}
 	}
 
 	private static class DisconnectInterruptServiceRoutine extends InterruptServiceRoutine{
 		public DisconnectInterruptServiceRoutine() {
-			this.isrID = disconnectID;
+			this.priority = 5;
 		}
 
 		@Override
-		public void set(int pid, int sp, int address, int csr, int hsr) {
-			super.set(pid, sp, address, csr, hsr);
-			this.priority = 2;
-		}
-
-		@Override
-		public void handle() {
-			processManagerAW.waitOffer();
+		public void handle(Interrupt interrupt) {
 			processManagerAW.contextSwitch(ProcessState.WAIT);
-			Thread thread = new Thread(()->{
-				OperatingSystem.networkDriver.disconnect();
-				processManagerAW.isrFinished(pid);
-			});
-			thread.start();
+			OperatingSystem.networkDriver.disconnect();
+			processManagerAW.isrFinished(interrupt.pid);
 		}
 	}
 }

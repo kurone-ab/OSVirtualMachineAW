@@ -18,7 +18,7 @@ public class ActivationRecord {
 
 	@Override
 	public String toString() {
-		return "ActivationRecord {" + "returnHSR=" + returnHSR +
+		return "{" + "returnHSR=" + returnHSR +
 				", returnPC=" + returnPC +
 				", variables=" + Arrays.toString(local) +
 				'}';
