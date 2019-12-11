@@ -23,6 +23,7 @@ public class FileManagerAW {
         this.baseLoad("exe/sub.awx", "exe/project1/sub.awx");
         this.baseLoad("exe/main2.awx", "exe/project2/main.awx");
         this.baseLoad("exe/calculator.awx", "exe/calculator.awx");
+        this.baseLoad("exe/network.awx", "system/network.awx");
     }
 
     public void baseLoad(String exist, String make) {

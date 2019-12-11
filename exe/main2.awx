@@ -3,7 +3,7 @@ import exe/project1/sub.awx
 static a
 static b
 static c
-use exe/project1/sub.awx as sub
+use sub as sub
 
 func test() {
     d = 3

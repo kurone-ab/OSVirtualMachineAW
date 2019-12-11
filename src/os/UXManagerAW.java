@@ -13,8 +13,15 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.GregorianCalendar;
+
+import static os.OperatingSystem.interruptVectorTable;
 
 public class UXManagerAW extends JFrame {
     private static final String pathString = "PATH: ", pauseString = "||", continueString = ">",
@@ -37,6 +44,7 @@ public class UXManagerAW extends JFrame {
     private JList<ProcessAW> memory;
     private ConsoleAW console;
     private JButton execute;
+    private JButton newFile;
     private JButton pause;
     private JLabel path;
     private JList<ProcessControlBlock> ready;
@@ -65,7 +73,8 @@ public class UXManagerAW extends JFrame {
             String priority = JOptionPane.showInputDialog("Set Process Priority.");
             int pri = 0;
             if (priority != null) if (priority.matches("-?[0-9]+")) pri = Integer.parseInt(priority);
-            Loader.load(this.executableFile, pri);
+            if (this.executableFile.getFilename().contains("system")) this.errorMessage("Cannot execute system file!");
+            else Loader.load(this.executableFile, pri);
         });
 
         this.pause = new JButton();
@@ -73,6 +82,48 @@ public class UXManagerAW extends JFrame {
             ClockState state = OperatingSystem.processManagerAW.changeClockState();
             if (state == ClockState.WAIT) this.pause.setText(continueString);
             else this.pause.setText(pauseString);
+        });
+
+        this.newFile = new JButton();
+        this.newFile.addActionListener((e)->{
+            JDialog dialog = new JDialog(this, "New File");
+            dialog.setSize(new Dimension(450, 600));
+            Container container = dialog.getContentPane();
+            container.setLayout(new GridBagLayout());
+
+            JTextArea area = new JTextArea();
+            area.setFont(baseFont.deriveFont(13f));
+            JScrollPane pane = new JScrollPane(area);
+            pane.setPreferredSize(new Dimension(430, 550));
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.weighty = 1;
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.insets = new Insets(10, 5, 10, 5);
+            container.add(pane, gbc);
+            JButton create = new JButton("Create");
+            create.addActionListener((event)->{
+                String name = JOptionPane.showInputDialog("Input Filename");
+                if (name!=null){
+                    try {
+                        OperatingSystem.fileManagerAW.loadFile(name+".awx", area.getText());
+                        dialog.setVisible(false);
+                    } catch (IllegalFileFormatException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
+            create.setFont(baseFont.deriveFont(Font.BOLD, 13f));
+            gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.gridy = 1;
+            gbc.weighty = 0.1;
+            gbc.anchor = GridBagConstraints.EAST;
+            gbc.insets = new Insets(10, 5, 10, 5);
+            container.add(create, gbc);
+            dialog.pack();
+            dialog.setVisible(true);
         });
 
         this.path = new JLabel();
@@ -89,6 +140,17 @@ public class UXManagerAW extends JFrame {
             try {
                 FileManagerAW.FileAW fileAW = OperatingSystem.fileManagerAW.getFile(builder.toString());
                 if (fileAW.extension.equals(FileManagerAW.AWX)) {
+                    JDialog dialog = new JDialog(this, fileAW.filename);
+                    dialog.setSize(new Dimension(450, 600));
+
+                    JTextArea area = new JTextArea();
+                    area.setSize(new Dimension(400, 500));
+                    area.setFont(baseFont.deriveFont(13f));
+                    area.setText((String) fileAW.content);
+                    JScrollPane pane = new JScrollPane(area);
+                    pane.setSize(new Dimension(430, 550));
+                    dialog.setContentPane(pane);
+                    dialog.setVisible(true);
                     this.executableFile = fileAW;
                     this.execute.setEnabled(true);
                 }
@@ -97,7 +159,7 @@ public class UXManagerAW extends JFrame {
             }
         });
         this.delay = new JSpinner();
-        this.delay.setModel(new SpinnerNumberModel(50, 50, 5000, 100));
+        this.delay.setModel(new SpinnerNumberModel(0, 0, 5000, 100));
         this.delay.addChangeListener((e) -> OperatingSystem.processManagerAW.setDelay((Integer) this.delay.getValue()));
         this.delay.setValue(100);
 
@@ -118,6 +180,33 @@ public class UXManagerAW extends JFrame {
         this.dataLine = new JList<>(this.dataListModel);
         this.locals = new JList<>(this.arListModel);
         this.instances = new JList<>(this.instanceListModel);
+
+        JFrame owner = this;
+        this.memory.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                ProcessAW processAW = memory.getSelectedValue();
+                JDialog dialog = new JDialog(owner, "pid: "+processAW.pid);
+                dialog.setSize(new Dimension(650, 600));
+
+                DefaultListModel<String> model = new DefaultListModel<>();
+                JList<String> list = new JList<>(model);
+                list.setSize(new Dimension(600, 500));
+                list.setFont(baseFont.deriveFont(13f));
+                for (int inst:processAW.code){
+                    String in = CentralProcessingUnit.Instruction.values()[inst>>>CompilerAW.instruction_bit].name();
+                    String segment = String.valueOf((inst>>>CompilerAW.segment_bit)&0x0000000f);
+                    String correction = String.valueOf((inst>>>CompilerAW.correction_bit)&0x000000ff);
+                    String value = String.valueOf(inst&0x00000fff);
+                    model.addElement("Instruction: "+in+" / Segment: "+segment+" / Sub Address: "+correction+
+                            " / Address or Value: "+value);
+                }
+                JScrollPane pane = new JScrollPane(list);
+                pane.setSize(new Dimension(630, 550));
+                dialog.setContentPane(pane);
+                dialog.setVisible(true);
+            }
+        });
     }
 
     public void on() {
@@ -125,8 +214,10 @@ public class UXManagerAW extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.pack();
         this.setVisible(true);
+        this.setTitle("OS Virtual MachineAW");
         try {
             Loader.load(OperatingSystem.fileManagerAW.getFile("system/system.awx"), 0);
+            Loader.load(OperatingSystem.fileManagerAW.getFile("system/network.awx"), 0);
         } catch (IllegalFileFormatException e) {
             e.printStackTrace();
         }
@@ -418,7 +509,7 @@ public class UXManagerAW extends JFrame {
         gbc.gridy = 0;
         gbc.gridwidth = 4;
         gbc.weightx = 0.7;
-        gbc.anchor = GridBagConstraints.EAST;
+        gbc.anchor = GridBagConstraints.CENTER;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 0, 0, 10);
         delayPanel.add(delay, gbc);
@@ -476,7 +567,6 @@ public class UXManagerAW extends JFrame {
         memoryPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<MEMORY>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
         memory.setBackground(new Color(-1));
         memory.setFont(baseFont.deriveFont(13f));
-        memory.setPreferredSize(new Dimension(170, 300));
         memoryPane.setViewportView(memory);
         JScrollPane consolePane = new JScrollPane();
         consolePane.setAutoscrolls(true);
@@ -495,29 +585,40 @@ public class UXManagerAW extends JFrame {
         console.setBackground(new Color(-1));
         console.setFont(baseFont.deriveFont(13f));
         this.console.setLineWrap(true);
-        this.console.setMinimumSize(new Dimension(550, 270));
-        this.console.setPreferredSize(new Dimension(550, 270));
-        this.console.setVerifyInputWhenFocusTarget(true);
-        this.console.setEditable(false);
+        this.console.setMinimumSize(new Dimension(550, 280));
+//        this.console.setEditable(false);
         consolePane.setViewportView(this.console);
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
         execute.setFont(baseFont.deriveFont(Font.BOLD));
         execute.setText("EXECUTE");
         gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         gbc.weightx = 0.7;
         gbc.ipadx = 100;
-        main.add(execute, gbc);
+        gbc.insets = new Insets(0, 10, 0, 10);
+        panel.add(execute, gbc);
+        newFile.setFont(baseFont.deriveFont(Font.BOLD));
+        newFile.setText("CREATE NEW FILE");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 10, 0, 10);
+        panel.add(newFile, gbc);
         pause.setFont(baseFont.deriveFont(Font.BOLD));
         pause.setText(pauseString);
         gbc = new GridBagConstraints();
-        gbc.gridx = 3;
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 10, 0, 10);
+        panel.add(pause, gbc);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
         gbc.gridy = 1;
-        gbc.weightx = 0.3;
-        gbc.ipadx = 30;
-        main.add(pause, gbc);
+        gbc.gridwidth = 2;
+        main.add(panel, gbc);
         current = new JLabel();
         current.setText(currentString);
         current.setFont(baseFont.deriveFont(Font.BOLD));
@@ -551,7 +652,6 @@ public class UXManagerAW extends JFrame {
         fileTree.setBackground(new Color(-1));
         fileTree.setFont(baseFont);
         fileTree.setMinimumSize(new Dimension(170, 350));
-        fileTree.setPreferredSize(new Dimension(170, 350));
         fileTree.setToggleClickCount(2);
         filePane.setViewportView(fileTree);
         path.setFont(baseFont.deriveFont(Font.BOLD));
@@ -576,7 +676,6 @@ public class UXManagerAW extends JFrame {
         ready.setFont(baseFont.deriveFont(13f));
         ready.setBackground(new Color(-1));
         ready.setMinimumSize(new Dimension(300, 350));
-        ready.setPreferredSize(new Dimension(300, 350));
         readyPane.setViewportView(ready);
         JScrollPane waitPane = new JScrollPane();
         waitPane.setBackground(new Color(-1));
@@ -590,7 +689,6 @@ public class UXManagerAW extends JFrame {
         waitPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "<WAIT QUEUE>", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, baseFont.deriveFont(Font.BOLD, 18f)));
         wait.setBackground(new Color(-1));
         wait.setMinimumSize(new Dimension(300, 350));
-        wait.setPreferredSize(new Dimension(300, 350));
         waitPane.setViewportView(wait);
         JTabbedPane currentProcess = new JTabbedPane();
         currentProcess.setFont(baseFont);

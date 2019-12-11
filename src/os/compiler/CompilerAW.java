@@ -67,13 +67,20 @@ public class CompilerAW {
 		class_instances = new HashMap<>();
 		class_variables = new HashMap<>();
 		importModules = new HashMap<>();
-		importModules.put(this.fileAW.filename, this);
+		String filename = this.fileAW.filename;
+		StringTokenizer tokenizer = new StringTokenizer(filename, ".");
+		StringBuilder builder = new StringBuilder();
+		while (tokenizer.countTokens()>1){
+			builder.append(tokenizer.nextToken());
+		}
+		importModules.put(builder.toString(), this);
 		code = new ArrayList<>();
 		data = new ArrayList<>();
 		heapAddress = dataAddress = 0;
 		this.isMain = main_pattern.matcher(this.fileAW.content).find();
 		if (!this.isMain) throw new NotMainAWXFileException("You cannot run a file without the main method.");
 		this.instance_variables.put(self, heapAddress++);
+		this.default_directory = this.fileAW.directory;
 	}
 
 	public void parse() throws IllegalInstructionException, IllegalFormatException, DuplicateVariableException {
@@ -92,7 +99,7 @@ public class CompilerAW {
 					String filename = tokenizer.nextToken();
 					if (!importModules.containsKey(filename)) {
 						try {
-							CompilerAW compilerAW = new CompilerAW(OperatingSystem.fileManagerAW.getFile(filename));
+							CompilerAW compilerAW = new CompilerAW(OperatingSystem.fileManagerAW.getFile(this.default_directory+"/"+filename+".awx"));
 							compilerAW.parse();
 							importModules.put(filename, compilerAW);
 						} catch (IllegalFileFormatException e) {

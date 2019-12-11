@@ -80,10 +80,6 @@ public class ProcessManagerAW {
                     if (interrupted || moreInterrupt) {
                         int interruptID = Register.ITR.data >>> CompilerAW.instruction_bit;
                         int interruptData = Register.ITR.data & 0x00ffffff;
-                        if (interruptID==2){
-                            System.out.println(this.currentProcess.pid);
-                            System.out.println(interruptData);
-                        }
                         InterruptServiceRoutine isr = interruptVectorTable.getISR(interruptID);
                         Interrupt interrupt = new Interrupt(this.currentProcess.pid, interruptID, Register.SP.data,
                                 interruptData, Register.CSR.data, Register.HSR.data, isr.priority);
@@ -122,7 +118,6 @@ public class ProcessManagerAW {
             pcb.ps = ProcessState.READY;
             this.ready.offer(pcb);
         } catch (NoSuchElementException e) {
-            System.out.println(pid);
             e.printStackTrace();
         }
     }

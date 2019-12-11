@@ -1,0 +1,6 @@
+allocate 1
+
+func main() {
+    connect
+    exit
+}
