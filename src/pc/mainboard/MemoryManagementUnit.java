@@ -15,8 +15,8 @@ public class MemoryManagementUnit {
     public void dataFetch() {
         int segment = (Register.MAR.data >>> CompilerAW.segment_bit) & 0x0000000f;
         int correction = (Register.MAR.data >>> CompilerAW.correction_bit) & 0x000000ff;
-        int address = Register.MAR.data & 0x00000fff;
-        Register.MAR.data = address;
+        int mar = Register.MAR.data;
+        Register.MAR.data = Register.MAR.data & 0x00000fff;
         switch (segment) {
             case CompilerAW.dataSegment:
                 ram.data_segment_fetch();
@@ -28,7 +28,7 @@ public class MemoryManagementUnit {
                 ram.heap_segment_fetch();
                 break;
             case CompilerAW.constant:
-                Register.MBR.data = address;
+                Register.MBR.data = mar & 0x000fffff;
                 break;
             case CompilerAW.abnormal:
                 int recover = Register.HSR.data;
@@ -42,18 +42,18 @@ public class MemoryManagementUnit {
     public int dataFetch(int address, int sp, int csr, int hsr) throws IllegalAccessException {
         int segment = (address >>> CompilerAW.segment_bit) & 0x0000000f;
         int correction = (address >>> CompilerAW.correction_bit) & 0x000000ff;
-        address = address & 0x00000fff;
+        int adr = address & 0x00000fff;
         switch (segment) {
             case CompilerAW.dataSegment:
-                return ram.data_segment_fetch(sp, address);
+                return ram.data_segment_fetch(sp, adr);
             case CompilerAW.stackSegment:
-                return ram.stack_segment_fetch(sp, csr, address);
+                return ram.stack_segment_fetch(sp, csr, adr);
             case CompilerAW.heapSegment:
-                return ram.heap_segment_fetch(sp, hsr, address);
+                return ram.heap_segment_fetch(sp, hsr, adr);
             case CompilerAW.constant:
-                return address;
+                return address & 0x000fffff;
             case CompilerAW.abnormal:
-                return ram.heap_segment_fetch(sp, correction, address);
+                return ram.heap_segment_fetch(sp, correction, adr);
             default: throw new IllegalAccessException();
         }
     }

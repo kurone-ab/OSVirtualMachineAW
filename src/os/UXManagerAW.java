@@ -85,7 +85,7 @@ public class UXManagerAW extends JFrame {
         });
 
         this.newFile = new JButton();
-        this.newFile.addActionListener((e)->{
+        this.newFile.addActionListener((e) -> {
             JDialog dialog = new JDialog(this, "New File");
             dialog.setSize(new Dimension(450, 600));
             Container container = dialog.getContentPane();
@@ -103,11 +103,11 @@ public class UXManagerAW extends JFrame {
             gbc.insets = new Insets(10, 5, 10, 5);
             container.add(pane, gbc);
             JButton create = new JButton("Create");
-            create.addActionListener((event)->{
+            create.addActionListener((event) -> {
                 String name = JOptionPane.showInputDialog("Input Filename");
-                if (name!=null){
+                if (name != null) {
                     try {
-                        OperatingSystem.fileManagerAW.loadFile(name+".awx", area.getText());
+                        OperatingSystem.fileManagerAW.loadFile(name + ".awx", area.getText());
                         dialog.setVisible(false);
                     } catch (IllegalFileFormatException ex) {
                         ex.printStackTrace();
@@ -186,20 +186,23 @@ public class UXManagerAW extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 ProcessAW processAW = memory.getSelectedValue();
-                JDialog dialog = new JDialog(owner, "pid: "+processAW.pid);
+                JDialog dialog = new JDialog(owner, "pid: " + processAW.pid);
                 dialog.setSize(new Dimension(650, 600));
 
                 DefaultListModel<String> model = new DefaultListModel<>();
                 JList<String> list = new JList<>(model);
                 list.setSize(new Dimension(600, 500));
                 list.setFont(baseFont.deriveFont(13f));
-                for (int inst:processAW.code){
-                    String in = CentralProcessingUnit.Instruction.values()[inst>>>CompilerAW.instruction_bit].name();
-                    String segment = String.valueOf((inst>>>CompilerAW.segment_bit)&0x0000000f);
-                    String correction = String.valueOf((inst>>>CompilerAW.correction_bit)&0x000000ff);
-                    String value = String.valueOf(inst&0x00000fff);
-                    model.addElement("Instruction: "+in+" / Segment: "+segment+" / Sub Address: "+correction+
-                            " / Address or Value: "+value);
+                for (int inst : processAW.code) {
+                    String in = CentralProcessingUnit.Instruction.values()[inst >>> CompilerAW.instruction_bit].name();
+                    int seg = (inst >>> CompilerAW.segment_bit) & 0x0000000f;
+                    String value;
+                    if (seg == CompilerAW.constant) value = String.valueOf(inst & 0x000fffff);
+                    else value = String.valueOf(inst & 0x00000fff);
+                    String segment = String.valueOf(seg);
+                    String correction = String.valueOf((inst >>> CompilerAW.correction_bit) & 0x000000ff);
+                    model.addElement(model.getSize() + ") " + "Instruction: " + in + " / Segment: " + segment + " / Sub Address: " + correction +
+                            " / Address or Value: " + value);
                 }
                 JScrollPane pane = new JScrollPane(list);
                 pane.setSize(new Dimension(630, 550));
@@ -217,7 +220,7 @@ public class UXManagerAW extends JFrame {
         this.setTitle("OS Virtual MachineAW");
         try {
             Loader.load(OperatingSystem.fileManagerAW.getFile("system/system.awx"), 0);
-            Loader.load(OperatingSystem.fileManagerAW.getFile("system/network.awx"), 0);
+//            Loader.load(OperatingSystem.fileManagerAW.getFile("system/network.awx"), 0);
         } catch (IllegalFileFormatException e) {
             e.printStackTrace();
         }
@@ -586,7 +589,7 @@ public class UXManagerAW extends JFrame {
         console.setFont(baseFont.deriveFont(13f));
         this.console.setLineWrap(true);
         this.console.setMinimumSize(new Dimension(550, 280));
-//        this.console.setEditable(false);
+        this.console.setEditable(false);
         consolePane.setViewportView(this.console);
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
