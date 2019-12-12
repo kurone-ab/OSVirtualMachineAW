@@ -11,7 +11,7 @@ func d() {
     }
     a = 1
     sum = 0
-    while a < 100001 {
+    while a < 11 {
         sum = sum + a
         a = a + 1
     }
@@ -40,8 +40,8 @@ func test() {
 func main() {
     z = test()
     f(z)
-    /-- send a
-    /-- receive y
+    send a
+    receive y
     print y
     exit
 }

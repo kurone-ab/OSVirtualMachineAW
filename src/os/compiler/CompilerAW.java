@@ -28,7 +28,7 @@ public class CompilerAW {
 	private static final Pattern fn_name_pattern = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*\\(");
 	private static final Pattern var_pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*\\.?)+");
 	private static final Pattern parameter_pattern = Pattern.compile("\\([a-zA-Z\\-0-9.,_ ]+\\)");
-	private static final Pattern parameter_element_pattern = Pattern.compile("[a-zA-Z\\-0-9._]+");
+	private static final Pattern parameter_element_pattern = Pattern.compile("-?[a-zA-Z0-9._]+");
 	private static final Pattern main_pattern = Pattern.compile("main\\(\\)");
 	private static int heapAddress, dataAddress;
 	private static HashMap<String, Integer> class_variables;

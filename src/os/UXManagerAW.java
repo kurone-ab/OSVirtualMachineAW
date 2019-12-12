@@ -3,7 +3,6 @@ package os;
 import global.IllegalFileFormatException;
 import os.compiler.CompilerAW;
 import pc.io.ConsoleAW;
-import pc.mainboard.MainBoard;
 import pc.mainboard.cpu.CentralProcessingUnit;
 import pc.mainboard.cpu.Register;
 
@@ -15,13 +14,8 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.GregorianCalendar;
-
-import static os.OperatingSystem.interruptVectorTable;
 
 public class UXManagerAW extends JFrame {
     private static final String pathString = "PATH: ", pauseString = "||", continueString = ">",
@@ -159,7 +153,7 @@ public class UXManagerAW extends JFrame {
             }
         });
         this.delay = new JSpinner();
-        this.delay.setModel(new SpinnerNumberModel(0, 0, 5000, 100));
+        this.delay.setModel(new SpinnerNumberModel(50, 50, 5000, 100));
         this.delay.addChangeListener((e) -> OperatingSystem.processManagerAW.setDelay((Integer) this.delay.getValue()));
         this.delay.setValue(100);
 
@@ -185,29 +179,31 @@ public class UXManagerAW extends JFrame {
         this.memory.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                ProcessAW processAW = memory.getSelectedValue();
-                JDialog dialog = new JDialog(owner, "pid: " + processAW.pid);
-                dialog.setSize(new Dimension(650, 600));
+                if (e.getClickCount() == 2) {
+                    ProcessAW processAW = memory.getSelectedValue();
+                    JDialog dialog = new JDialog(owner, "pid: " + processAW.pid);
+                    dialog.setSize(new Dimension(650, 600));
 
-                DefaultListModel<String> model = new DefaultListModel<>();
-                JList<String> list = new JList<>(model);
-                list.setSize(new Dimension(600, 500));
-                list.setFont(baseFont.deriveFont(13f));
-                for (int inst : processAW.code) {
-                    String in = CentralProcessingUnit.Instruction.values()[inst >>> CompilerAW.instruction_bit].name();
-                    int seg = (inst >>> CompilerAW.segment_bit) & 0x0000000f;
-                    String value;
-                    if (seg == CompilerAW.constant) value = String.valueOf(inst & 0x000fffff);
-                    else value = String.valueOf(inst & 0x00000fff);
-                    String segment = String.valueOf(seg);
-                    String correction = String.valueOf((inst >>> CompilerAW.correction_bit) & 0x000000ff);
-                    model.addElement(model.getSize() + ") " + "Instruction: " + in + " / Segment: " + segment + " / Sub Address: " + correction +
-                            " / Address or Value: " + value);
+                    DefaultListModel<String> model = new DefaultListModel<>();
+                    JList<String> list = new JList<>(model);
+                    list.setSize(new Dimension(600, 500));
+                    list.setFont(baseFont.deriveFont(13f));
+                    for (int inst : processAW.code) {
+                        String in = CentralProcessingUnit.Instruction.values()[inst >>> CompilerAW.instruction_bit].name();
+                        int seg = (inst >>> CompilerAW.segment_bit) & 0x0000000f;
+                        String value;
+                        if (seg == CompilerAW.constant) value = String.valueOf(inst & 0x000fffff);
+                        else value = String.valueOf(inst & 0x00000fff);
+                        String segment = String.valueOf(seg);
+                        String correction = String.valueOf((inst >>> CompilerAW.correction_bit) & 0x000000ff);
+                        model.addElement(model.getSize() + ") " + "Instruction: " + in + " / Segment: " + segment + " / Sub Address: " + correction +
+                                " / Address or Value: " + value);
+                    }
+                    JScrollPane pane = new JScrollPane(list);
+                    pane.setSize(new Dimension(630, 550));
+                    dialog.setContentPane(pane);
+                    dialog.setVisible(true);
                 }
-                JScrollPane pane = new JScrollPane(list);
-                pane.setSize(new Dimension(630, 550));
-                dialog.setContentPane(pane);
-                dialog.setVisible(true);
             }
         });
     }
@@ -220,7 +216,7 @@ public class UXManagerAW extends JFrame {
         this.setTitle("OS Virtual MachineAW");
         try {
             Loader.load(OperatingSystem.fileManagerAW.getFile("system/system.awx"), 0);
-//            Loader.load(OperatingSystem.fileManagerAW.getFile("system/network.awx"), 0);
+            Loader.load(OperatingSystem.fileManagerAW.getFile("system/network.awx"), 0);
         } catch (IllegalFileFormatException e) {
             e.printStackTrace();
         }
@@ -301,10 +297,10 @@ public class UXManagerAW extends JFrame {
     }
 
     {
-        $$$setupUI$$$();
+        setupUI();
     }
 
-    private void $$$setupUI$$$() {
+    private void setupUI() {
         this.createUIComponents();
         main = new JPanel();
         main.setLayout(new GridBagLayout());
